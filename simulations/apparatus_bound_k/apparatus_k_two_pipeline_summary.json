@@ -1,0 +1,104 @@
+{
+  "contract": "two-pipeline apparatus-bound K simulation",
+  "allowed_claim": "The two-pipeline apparatus-bound mechanism produces the predicted K_2 / K_1 ratio under explicit forward-model noise, and the \u00a77 atlas-coherence cutoff distinguishes a reliability floor from chart fracture.",
+  "forbidden_claim": "This simulation validates AOC against any real cosmological dataset or proves apparatus-bound K as a property of nature.",
+  "chart": {
+    "A": 1.0,
+    "alpha": 0.5
+  },
+  "config": {
+    "n_seeds": 60,
+    "n_obs": 4000,
+    "t_min": 0.0001,
+    "t_max": 100.0,
+    "eta": 0.1,
+    "gamma_max": 3.0,
+    "n_y_bins": 30,
+    "y_eval_points": 30,
+    "kernel_bandwidth_log_t": 0.3,
+    "bin_width_log_t": 0.6
+  },
+  "pipelines": [
+    {
+      "name": "baseline",
+      "sigma_0": 0.01,
+      "p": 1.8
+    },
+    {
+      "name": "improved",
+      "sigma_0": 0.003,
+      "p": 1.8
+    }
+  ],
+  "per_pipeline": {
+    "baseline": {
+      "k_emp_median": 17.93646311890365,
+      "k_emp_p10": 16.820240115754196,
+      "k_emp_p90": 19.071550420068153,
+      "k_emp_n_finite": 60,
+      "k_closed_median": 17.78279410038923,
+      "k_closed_p10": 17.78279410038923,
+      "k_closed_p90": 17.78279410038923,
+      "k_closed_n_finite": 60,
+      "k_emp_minus_closed_median": 0.15366901851442094,
+      "k_emp_minus_closed_p10": -0.9625539846350321,
+      "k_emp_minus_closed_p90": 1.288756319678926,
+      "k_emp_minus_closed_n_finite": 60,
+      "t_k_emp_median": 0.0031083394807679297,
+      "t_k_emp_p10": 0.0027493428769870495,
+      "t_k_emp_p90": 0.0035346631881854208,
+      "t_k_emp_n_finite": 60,
+      "t_k_closed_median": 0.003162277660168379,
+      "t_k_closed_p10": 0.003162277660168379,
+      "t_k_closed_p90": 0.003162277660168379,
+      "t_k_closed_n_finite": 60,
+      "k_atlas_median": 17.55608785658452,
+      "k_atlas_p10": 16.593019831864332,
+      "k_atlas_p90": 18.776651087186135,
+      "k_atlas_n_finite": 60,
+      "gamma_at_k_emp_median": 1.2458328994412944,
+      "gamma_at_k_emp_p10": 0.903595395870258,
+      "gamma_at_k_emp_p90": 1.7096268750418375,
+      "gamma_at_k_emp_n_finite": 60
+    },
+    "improved": {
+      "k_emp_median": 80.72243308624348,
+      "k_emp_p10": 72.93600579944196,
+      "k_emp_p90": 89.71641173621406,
+      "k_emp_n_finite": 60,
+      "k_closed_median": 80.09371380449181,
+      "k_closed_p10": 80.09371380449181,
+      "k_closed_p90": 80.09371380449181,
+      "k_closed_n_finite": 60,
+      "k_emp_minus_closed_median": 0.6287192817516782,
+      "k_emp_minus_closed_p10": -7.157708005049853,
+      "k_emp_minus_closed_p90": 9.622697931722243,
+      "k_emp_minus_closed_n_finite": 60,
+      "t_k_emp_median": 0.00015346581900592567,
+      "t_k_emp_p10": 0.0001242385028507184,
+      "t_k_emp_p90": 0.0001880299155585809,
+      "t_k_emp_n_finite": 60,
+      "t_k_closed_median": 0.00015588457268119894,
+      "t_k_closed_p10": 0.00015588457268119894,
+      "t_k_closed_p90": 0.00015588457268119894,
+      "t_k_closed_n_finite": 60,
+      "k_atlas_median": 78.80462815669907,
+      "k_atlas_p10": 72.7901094215423,
+      "k_atlas_p90": 78.80462815669907,
+      "k_atlas_n_finite": 60,
+      "gamma_at_k_emp_median": 0.8936746423857428,
+      "gamma_at_k_emp_p10": 0.4042943273514477,
+      "gamma_at_k_emp_p90": 1.4885048165810437,
+      "gamma_at_k_emp_n_finite": 60
+    }
+  },
+  "ratio": {
+    "pipeline_lo": "baseline",
+    "pipeline_hi": "improved",
+    "theory_K_hi_over_lo": 4.504000516023448,
+    "median_K_hi_over_lo": 4.498521269958365,
+    "p10_K_hi_over_lo": 3.944467768034493,
+    "p90_K_hi_over_lo": 5.05107324202457,
+    "n_seeds": 60
+  }
+}

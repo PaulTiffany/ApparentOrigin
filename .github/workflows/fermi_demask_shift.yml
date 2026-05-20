@@ -1,0 +1,59 @@
+name: Fermi Demask-Shift Recurrence
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Runner mode: smoke or axes_csv_url"
+        required: true
+        default: "smoke"
+        type: choice
+        options:
+          - smoke
+          - axes_csv_url
+      axes_csv_url:
+        description: "Optional URL to predeclared axes CSV"
+        required: false
+        default: ""
+        type: string
+      transitions:
+        description: "Comma-separated Ma:Mb transitions"
+        required: true
+        default: "M0:M1,M1:M2,M2:M3,M0:M2,M0:M4"
+        type: string
+
+jobs:
+  fermi-demask-shift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -s cloud_run/fermi_demask_shift/requirements.txt ]; then
+            python -m pip install -r cloud_run/fermi_demask_shift/requirements.txt
+          fi
+
+      - name: Run Fermi demask-shift SharedShift metric
+        run: |
+          bash cloud_run/fermi_demask_shift/run_fermi_demask_shift.sh \
+            "${{ inputs.mode }}" \
+            "${{ inputs.axes_csv_url }}" \
+            "${{ inputs.transitions }}"
+
+      - name: Upload Fermi demask-shift artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fermi-demask-shift-run
+          path: reports/fermi_demask_shift_recurrence/ci_runner/**
+          if-no-files-found: error
+

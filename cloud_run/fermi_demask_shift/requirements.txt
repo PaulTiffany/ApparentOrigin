@@ -1,0 +1,4 @@
+# SharedShift metric runner uses the Python standard library.
+# The passive 4FGL catalog-axis extractor needs FITS/catalog handling.
+numpy
+astropy

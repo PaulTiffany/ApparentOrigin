@@ -1,0 +1,29 @@
+__pycache__/
+*.pyc
+.venv*/
+data/raw/**
+!data/raw/**/
+!data/raw/**/PROVENANCE.md
+data/derived/**/*.csv
+data/derived/**/*.json
+reports/**/*.png
+reports/**/*.csv
+reports/**/*.json
+
+# Local/generated environments and scratch material.
+.venv*/
+tmp/
+.tmp_*
+*.aux
+*.log
+*.out
+
+# NotebookLM source packets and preparation notes are preserved, but generated
+# binary exports remain off-repository pending an explicit publication review.
+notebooklm/**/*.m4a
+notebooklm/**/*.mp3
+notebooklm/**/*.mp4
+notebooklm/**/*.wav
+notebooklm/**/*.pdf
+notebooklm/**/*.zip
+notebooklm/**/*.csv
