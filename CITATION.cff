@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the repository and the primary astronomical source listed below."
+title: "ApparentOrigin: observer-bounded reconstruction experiments"
+type: software
+authors:
+  - family-names: Tiffany
+    given-names: Paul
+    orcid: ""
+repository-code: "https://github.com/PaulTiffany/ApparentOrigin"
+url: "https://github.com/PaulTiffany/ApparentOrigin"
+license: MIT
+version: 0.1.0
+date-released: 2026-08-28
+keywords:
+  - astronomy
+  - JWST
+  - black holes
+  - reproducible research
+  - observer-bounded reconstruction
+references:
+  - type: article
+    title: "A gas-enshrouded and gas-reddened black hole at cosmic dawn"
+    authors:
+      - family-names: Naidu
+        given-names: Rohan P.
+    year: 2026
+    doi: "10.1038/s41586-026-10846-4"
+  - type: dataset
+    title: "Public MoM spectrum products"
+    doi: "10.5281/zenodo.15059214"
