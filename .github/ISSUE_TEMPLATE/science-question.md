@@ -1,6 +1,6 @@
 ---
 name: Scientific question
-aBOut: Propose a test, challenge an inference, or report a scientific failure mode
+about: Propose a test, challenge an inference, or report a scientific failure mode
 title: "[science] "
 labels: ""
 assignees: ""
