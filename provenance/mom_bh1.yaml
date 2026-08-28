@@ -5,13 +5,6 @@ target:
   nature_doi: "10.1038/s41586-026-10846-4"
   excels_program: 3543
   excels_grating: "g395m"
-  excels_roots:
-    - "excels-uds01-v3"
-    - "excels-uds02-v3"
-    - "excels-uds01-v4"
-    - "excels-uds02-v4"
-    - "excels-uds03-v4"
-    - "excels-uds04-v4"
   mom_program: 5224
   primer_program: 1837
 
@@ -20,7 +13,9 @@ upstream:
   zenodo_api: "https://zenodo.org/api/records/15059214"
   dja_home: "https://dawn-cph.github.io/dja/"
   dja_query: "https://grizli-cutout.herokuapp.com/nirspec_extractions?coords={ra},{dec}&size={size}&output=csv"
-  dja_v3_catalog: "https://s3.amazonaws.com/msaexp-nirspec/extractions/nirspec_graded_v3.html"
+  # DJA's documented NIRSpec release pattern pairs the interactive HTML table
+  # with an Astropy ECSV catalog. Pin the frozen v3 catalog used by the paper.
+  dja_v3_catalog_ecsv: "https://s3.amazonaws.com/msaexp-nirspec/extractions/nirspec_graded_v3.ecsv"
   dja_file: "https://s3.amazonaws.com/msaexp-nirspec/extractions/{root}/{file}"
 
 acquisition:
