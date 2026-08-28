@@ -40,23 +40,9 @@ jobs:
           python -m pip install -r requirements.txt
           python -m compileall -q src
 
-      - name: Record DJA v3 shell assets
+      - name: Acquire exact public spectra
         run: |
-          python src/archive_probe.py
-
-      - name: Acquire only the required public spectra
-        run: |
-          python src/acquire.py --manifest provenance/mom_bh1.yaml --out run
-
-      - name: Diagnose EXCELS v3 identity by redshift
-        if: failure()
-        run: |
-          python src/diagnose_v3_identity.py
-
-      - name: Diagnose MoM prism coordinate fields
-        if: failure()
-        run: |
-          python src/diagnose_mom_coords.py
+          python src/acquire_exact.py --manifest provenance/mom_bh1.yaml --out run
 
       - name: Record software environment
         run: |
