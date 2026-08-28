@@ -13,7 +13,7 @@ upstream:
   zenodo_api: "https://zenodo.org/api/records/15059214"
   dja_home: "https://dawn-cph.github.io/dja/"
   dja_query: "https://grizli-cutout.herokuapp.com/nirspec_extractions?coords={ra},{dec}&size={size}&output=csv"
-  # The frozen v3 interactive table declares this JSON asset directly.
+  # Retained as a provenance witness for the historical archive, not fetched by normal CI.
   dja_v3_catalog_json: "https://s3.amazonaws.com/msaexp-nirspec/extractions/nirspec_graded_v3.json"
   dja_file: "https://s3.amazonaws.com/msaexp-nirspec/extractions/{root}/{file}"
 
@@ -21,7 +21,10 @@ acquisition:
   # Protect hosted runners from accidentally mirroring a large archive.
   max_file_mb: 128
   max_total_mb: 256
+  # Discovery cone for DJA's coordinate service.
   dja_radius_arcsec: 0.6
+  # Cross-survey identity must be much tighter than the discovery cone.
+  identity_radius_arcsec: 0.2
 
 experiment:
   hbeta_half_window_um: 0.07
