@@ -4,9 +4,11 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import html
 import io
 import json
 import math
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -15,7 +17,13 @@ import numpy as np
 import requests
 import yaml
 from astropy.io import fits
-from astropy.table import Table
+
+DJA_V3_COLUMNS = [
+    "jname", "ndup", "uid", "ra", "dec", "file", "root", "srcid", "ngr",
+    "grating", "grade", "zfit", "z", "comment", "references", "nref", "sn50",
+    "wmin", "wmax", "lya", "ha", "oiii", "l_ha", "l_oiii", "hst", "nircam",
+    "slit", "fits", "fnu", "flam",
+]
 
 
 def sha256(path: Path) -> str:
@@ -27,7 +35,6 @@ def sha256(path: Path) -> str:
 
 
 def download_limited(url: str, path: Path, max_bytes: int, timeout: int = 120) -> dict[str, Any]:
-    """Download one public upstream object with a hard size cap and receipt."""
     receipt: dict[str, Any] = {"url": url, "status": None, "downloaded": False}
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -52,13 +59,7 @@ def download_limited(url: str, path: Path, max_bytes: int, timeout: int = 120) -
                         raise RuntimeError(f"Upstream object exceeded cap {max_bytes} while streaming: {url}")
                     f.write(chunk)
 
-        receipt.update(
-            {
-                "downloaded": True,
-                "bytes": path.stat().st_size,
-                "sha256": sha256(path),
-            }
-        )
+        receipt.update({"downloaded": True, "bytes": path.stat().st_size, "sha256": sha256(path)})
         return receipt
     except Exception as exc:
         path.unlink(missing_ok=True)
@@ -98,11 +99,8 @@ def read_spec1d(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndar
 
 def extract_coords(path: Path) -> tuple[float, float] | None:
     header_pairs = [
-        ("SRCRA", "SRCDEC"),
-        ("SRC_RA", "SRC_DEC"),
-        ("RA_TARG", "DEC_TARG"),
-        ("TARG_RA", "TARG_DEC"),
-        ("RA", "DEC"),
+        ("SRCRA", "SRCDEC"), ("SRC_RA", "SRC_DEC"), ("RA_TARG", "DEC_TARG"),
+        ("TARG_RA", "TARG_DEC"), ("RA", "DEC"),
     ]
     try:
         with fits.open(path, memmap=False) as hdul:
@@ -128,7 +126,6 @@ def extract_coords(path: Path) -> tuple[float, float] | None:
 
 
 def choose_prism(candidates: list[Path], z: float, source_id: str) -> Path:
-    """Select the pinned MoM source, never merely a convenient spectrum."""
     observed_hbeta = 0.4861333 * (1 + z)
     exact_token = f"_{source_id}.spec.fits"
     matches: list[Path] = []
@@ -156,19 +153,52 @@ def angular_sep_arcsec(ra1: float, dec1: float, ra2: float, dec2: float) -> floa
     return math.hypot(dra, ddec) * 3600.0
 
 
-def scalar(row: Any, columns: dict[str, str], key: str, default: Any = None) -> Any:
-    actual = columns.get(key.lower())
-    if actual is None:
-        return default
-    value = row[actual]
-    if np.ma.is_masked(value):
-        return default
-    if isinstance(value, np.generic):
-        return value.item()
-    return value
+def strip_markup(value: Any) -> str:
+    if value is None:
+        return ""
+    text = html.unescape(str(value))
+    text = re.sub(r"<[^>]*>", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
 
 
-def discover_excels_v3(
+def hrefs(value: Any) -> list[str]:
+    if value is None:
+        return []
+    return re.findall(r'href\s*=\s*["\']?([^"\'\s>]+)', html.unescape(str(value)), flags=re.I)
+
+
+def normalize_dja_payload(payload: Any) -> list[dict[str, Any]]:
+    """Accept DataTables dict/list encodings used by the frozen DJA page."""
+    if isinstance(payload, dict):
+        data = payload.get("data")
+        if data is None:
+            data = payload.get("aaData")
+        if data is None:
+            list_values = [value for value in payload.values() if isinstance(value, list)]
+            if len(list_values) == 1:
+                data = list_values[0]
+        if data is None:
+            raise RuntimeError(f"Unrecognized DJA JSON top-level keys: {list(payload)[:20]}")
+    elif isinstance(payload, list):
+        data = payload
+    else:
+        raise RuntimeError(f"Unrecognized DJA JSON payload type: {type(payload).__name__}")
+
+    rows: list[dict[str, Any]] = []
+    for raw in data:
+        if isinstance(raw, dict):
+            row = {str(k).lower(): v for k, v in raw.items()}
+        elif isinstance(raw, (list, tuple)):
+            if len(raw) < 10:
+                continue
+            row = {DJA_V3_COLUMNS[i]: raw[i] for i in range(min(len(raw), len(DJA_V3_COLUMNS)))}
+        else:
+            continue
+        rows.append(row)
+    return rows
+
+
+def discover_excels_v3_json(
     catalog_path: Path,
     ra: float,
     dec: float,
@@ -176,66 +206,67 @@ def discover_excels_v3(
     program: str,
     grating: str,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], dict[str, Any]]:
-    """Resolve the exact historical EXCELS spectrum from DJA's frozen v3 ECSV."""
-    table = Table.read(catalog_path, format="ascii.ecsv")
-    columns = {name.lower(): name for name in table.colnames}
-    required = {"ra", "dec", "root", "file", "grating"}
-    missing = sorted(required - set(columns))
-    if missing:
-        raise RuntimeError(f"DJA v3 ECSV missing required columns: {missing}; has {table.colnames}")
+    with catalog_path.open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+    rows = normalize_dja_payload(payload)
 
     near_excels: list[dict[str, Any]] = []
     candidates: list[dict[str, Any]] = []
-    for row in table:
-        root = str(scalar(row, columns, "root", ""))
+    for row in rows:
+        root = strip_markup(row.get("root"))
         if "excels" not in root.lower():
             continue
         try:
-            row_ra = float(scalar(row, columns, "ra"))
-            row_dec = float(scalar(row, columns, "dec"))
-        except (TypeError, ValueError):
+            row_ra = float(strip_markup(row.get("ra")))
+            row_dec = float(strip_markup(row.get("dec")))
+        except ValueError:
             continue
         sep = angular_sep_arcsec(ra, dec, row_ra, row_dec)
         if sep > 5.0:
             continue
 
-        file_name = str(scalar(row, columns, "file", ""))
-        grating_value = str(scalar(row, columns, "grating", ""))
+        file_name = strip_markup(row.get("file"))
+        grating_value = strip_markup(row.get("grating"))
+        fits_cell = row.get("fits")
+        fits_hrefs = hrefs(fits_cell)
         item = {
             "root": root,
             "file": file_name,
             "ra": row_ra,
             "dec": row_dec,
             "sep_arcsec": sep,
-            "srcid": str(scalar(row, columns, "srcid", "")),
+            "srcid": strip_markup(row.get("srcid")),
             "grating": grating_value,
-            "filter": str(scalar(row, columns, "filter", "")),
-            "grade": scalar(row, columns, "grade"),
-            "z": scalar(row, columns, "z"),
+            "filter": strip_markup(row.get("filter")),
+            "grade": strip_markup(row.get("grade")),
+            "z": strip_markup(row.get("z")),
+            "fits_hrefs": fits_hrefs,
         }
         near_excels.append(item)
 
-        if sep <= radius_arcsec and grating.lower() in grating_value.lower() and program in file_name:
+        program_ok = program in file_name or any(program in url for url in fits_hrefs)
+        if sep <= radius_arcsec and grating.lower() in grating_value.lower() and program_ok:
             candidates.append(item)
 
     near_excels.sort(key=lambda item: item["sep_arcsec"])
-    candidates.sort(
-        key=lambda item: (
-            item["sep_arcsec"],
-            -float(item["grade"]) if item.get("grade") not in (None, "") else 0.0,
-        )
-    )
+
+    def grade_number(item: dict[str, Any]) -> float:
+        try:
+            return float(item.get("grade") or 0)
+        except ValueError:
+            return 0.0
+
+    candidates.sort(key=lambda item: (item["sep_arcsec"], -grade_number(item)))
     if not candidates:
         raise RuntimeError(
-            f"DJA v3 ECSV contains no EXCELS {grating} program-{program} row within "
+            f"DJA v3 JSON contains no EXCELS {grating} program-{program} row within "
             f"{radius_arcsec:.2f} arcsec of RA={ra:.8f}, Dec={dec:.8f}. "
             f"Nearest EXCELS rows: {near_excels[:5]}"
         )
 
     selected = candidates[0]
     diagnostic = {
-        "catalog_rows": len(table),
-        "catalog_columns": table.colnames,
+        "catalog_rows": len(rows),
         "target": {"ra": ra, "dec": dec, "radius_arcsec": radius_arcsec},
         "candidate_count": len(candidates),
         "candidates": candidates,
@@ -249,6 +280,14 @@ def parse_current_dja(text: str) -> list[dict[str, str]]:
     if not text.strip() or text.lstrip().lower().startswith("nothing found"):
         return []
     return list(csv.DictReader(io.StringIO(text)))
+
+
+def selected_fits_url(selected: dict[str, Any], fallback_template: str) -> str:
+    for url in selected.get("fits_hrefs", []):
+        if ".spec.fits" in url:
+            if url.startswith("http://") or url.startswith("https://"):
+                return url
+    return fallback_template.format(root=selected["root"], file=selected["file"])
 
 
 def main() -> None:
@@ -275,10 +314,9 @@ def main() -> None:
     max_each = int(acquisition["max_file_mb"]) * 1024 * 1024
     max_total = int(acquisition["max_total_mb"]) * 1024 * 1024
     radius = max(float(acquisition["dja_radius_arcsec"]), 1.0)
-
     receipts: list[dict[str, Any]] = []
 
-    # Authors' public MoM release. Keep the record metadata, not the science blobs.
+    # Authors' public MoM release.
     record_response = requests.get(upstream["zenodo_api"], timeout=60)
     record_response.raise_for_status()
     record = record_response.json()
@@ -289,9 +327,7 @@ def main() -> None:
     for item in record.get("files", []):
         key = str(item.get("key", ""))
         size = int(item.get("size") or 0)
-        if not key.lower().endswith((".fits", ".fits.gz")):
-            continue
-        if size > max_each or total + size > max_total:
+        if not key.lower().endswith((".fits", ".fits.gz")) or size > max_each or total + size > max_total:
             continue
         url = item.get("links", {}).get("content") or item.get("links", {}).get("self")
         if not url:
@@ -323,28 +359,23 @@ def main() -> None:
         }
     )
 
-    # Contemporary DJA coordinate query is an independent witness only. The
-    # endpoint currently tracks the rolling release, while the paper used v3.
+    # Current rolling DJA query is kept as an independent witness, not identity oracle.
     current_url = upstream["dja_query"].format(ra=f"{ra:.8f}", dec=f"{dec:.8f}", size=radius)
     current = requests.get(current_url, timeout=60)
     current.raise_for_status()
     (provenance / "dja-current-query.csv").write_text(current.text)
     current_rows = parse_current_dja(current.text)
 
-    # Frozen v3 machine-readable catalog used to identify the historical EXCELS
-    # extraction by sky position. Do not assume MoM and EXCELS share source IDs.
-    catalog_path = raw / "nirspec_graded_v3.ecsv"
-    catalog_receipt = download_limited(upstream["dja_v3_catalog_ecsv"], catalog_path, max_total)
+    # Fetch the exact JSON asset declared by the frozen v3 interactive table.
+    catalog_path = raw / "nirspec_graded_v3.json"
+    catalog_receipt = download_limited(upstream["dja_v3_catalog_json"], catalog_path, max_total)
     catalog_receipt["role"] = "dja_v3_catalog"
     receipts.append(catalog_receipt)
     if not catalog_receipt.get("downloaded"):
         (provenance / "acquisition-partial.json").write_text(json.dumps({"sources": receipts}, indent=2, sort_keys=True))
-        raise RuntimeError(
-            "Could not retrieve DJA frozen v3 ECSV catalog. "
-            f"Receipt: {catalog_receipt}"
-        )
+        raise RuntimeError(f"Could not retrieve DJA frozen v3 JSON catalog: {catalog_receipt}")
 
-    selected, candidates, diagnostic = discover_excels_v3(
+    selected, candidates, diagnostic = discover_excels_v3_json(
         catalog_path=catalog_path,
         ra=ra,
         dec=dec,
@@ -353,13 +384,13 @@ def main() -> None:
         grating=grating,
     )
     diagnostic["catalog"] = {
-        "url": upstream["dja_v3_catalog_ecsv"],
+        "url": upstream["dja_v3_catalog_json"],
         "sha256": catalog_receipt.get("sha256"),
         "bytes": catalog_receipt.get("bytes"),
     }
     (provenance / "dja-v3-selection.json").write_text(json.dumps(diagnostic, indent=2, sort_keys=True, default=str))
 
-    g395m_url = upstream["dja_file"].format(root=selected["root"], file=selected["file"])
+    g395m_url = selected_fits_url(selected, upstream["dja_file"])
     g395m_path = raw / "excels_g395m.fits"
     g395m_receipt = download_limited(g395m_url, g395m_path, max_each)
     g395m_receipt.update(
@@ -376,7 +407,6 @@ def main() -> None:
         (provenance / "acquisition-partial.json").write_text(json.dumps({"sources": receipts}, indent=2, sort_keys=True, default=str))
         raise RuntimeError(f"DJA catalog resolved an exact EXCELS row, but its FITS download failed: {g395m_receipt}")
 
-    # Validate that archive identity and bytes agree on basic scientific content.
     wave, _, _, _ = read_spec1d(g395m_path)
     observed_hbeta = 0.4861333 * (1 + z)
     if not (np.nanmin(wave) <= observed_hbeta <= np.nanmax(wave)):
