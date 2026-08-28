@@ -6,7 +6,10 @@ import csv
 import hashlib
 import io
 import json
+import math
+import re
 import shutil
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
@@ -163,6 +166,158 @@ def parse_dja_rows(text: str) -> list[dict[str, str]]:
     return list(csv.DictReader(io.StringIO(text)))
 
 
+class SimpleTableParser(HTMLParser):
+    """Extract table cell text and hrefs without third-party HTML dependencies."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.rows: list[list[dict[str, Any]]] = []
+        self._row: list[dict[str, Any]] | None = None
+        self._parts: list[str] | None = None
+        self._hrefs: list[str] | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        tag = tag.lower()
+        if tag == "tr":
+            self._row = []
+        elif tag in {"td", "th"} and self._row is not None:
+            self._parts = []
+            self._hrefs = []
+        elif tag == "a" and self._parts is not None and self._hrefs is not None:
+            href = dict(attrs).get("href")
+            if href:
+                self._hrefs.append(href)
+
+    def handle_data(self, data: str) -> None:
+        if self._parts is not None:
+            self._parts.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        tag = tag.lower()
+        if tag in {"td", "th"} and self._row is not None and self._parts is not None:
+            text = re.sub(r"\s+", " ", " ".join(self._parts)).strip()
+            self._row.append({"text": text, "hrefs": list(self._hrefs or [])})
+            self._parts = None
+            self._hrefs = None
+        elif tag == "tr" and self._row is not None:
+            if self._row:
+                self.rows.append(self._row)
+            self._row = None
+
+
+def angular_sep_arcsec(ra1: float, dec1: float, ra2: float, dec2: float) -> float:
+    dra = (ra1 - ra2) * math.cos(math.radians((dec1 + dec2) / 2.0))
+    ddec = dec1 - dec2
+    return math.hypot(dra, ddec) * 3600.0
+
+
+def discover_from_v3_catalog(
+    url: str,
+    ra: float,
+    dec: float,
+    radius_arcsec: float,
+    program: str,
+    grating: str,
+    source_id: str,
+    prov: Path,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    response = requests.get(url, timeout=120)
+    response.raise_for_status()
+    text = response.text
+
+    parser = SimpleTableParser()
+    parser.feed(text)
+
+    header_index: int | None = None
+    headers: list[str] = []
+    for i, row in enumerate(parser.rows):
+        values = [cell["text"].strip().lower() for cell in row]
+        if {"ra", "dec", "file", "root"}.issubset(set(values)):
+            header_index = i
+            headers = values
+            break
+
+    if header_index is None:
+        diag = {
+            "url": url,
+            "status": response.status_code,
+            "bytes": len(response.content),
+            "rows_parsed": len(parser.rows),
+            "error": "Could not identify ra/dec/file/root header row.",
+        }
+        (prov / "dja-v3-discovery.json").write_text(json.dumps(diag, indent=2, sort_keys=True))
+        return [], diag
+
+    candidates: list[dict[str, Any]] = []
+    nearest: list[dict[str, Any]] = []
+    for row in parser.rows[header_index + 1 :]:
+        if len(row) < len(headers):
+            continue
+        record = {headers[j]: row[j] for j in range(len(headers))}
+        try:
+            row_ra = float(record["ra"]["text"])
+            row_dec = float(record["dec"]["text"])
+        except (KeyError, TypeError, ValueError):
+            continue
+
+        root = record.get("root", {}).get("text", "")
+        file_name = record.get("file", {}).get("text", "")
+        grating_text = record.get("grating", {}).get("text", "")
+        srcid = record.get("srcid", {}).get("text", "")
+        sep = angular_sep_arcsec(ra, dec, row_ra, row_dec)
+
+        if "excels" not in root.lower():
+            continue
+
+        item = {
+            "root": root,
+            "file": file_name,
+            "ra": row_ra,
+            "dec": row_dec,
+            "sep_arcsec": sep,
+            "srcid": srcid,
+            "grating_text": grating_text,
+            "file_hrefs": record.get("file", {}).get("hrefs", []),
+            "fits_hrefs": record.get("fits", {}).get("hrefs", []),
+            "source_id_matches_mom": srcid == source_id,
+        }
+        nearest.append(item)
+
+        file_ok = grating in file_name.lower()
+        grating_ok = grating in grating_text.lower()
+        program_ok = program in file_name or program in " ".join(item["fits_hrefs"])
+        if sep <= radius_arcsec and (file_ok or grating_ok) and program_ok:
+            candidates.append(item)
+
+    nearest.sort(key=lambda x: x["sep_arcsec"])
+    candidates.sort(key=lambda x: x["sep_arcsec"])
+    diag = {
+        "url": url,
+        "status": response.status_code,
+        "bytes": len(response.content),
+        "rows_parsed": len(parser.rows),
+        "header": headers,
+        "target": {"ra": ra, "dec": dec, "radius_arcsec": radius_arcsec},
+        "candidates": candidates,
+        "nearest_excels_rows": nearest[:10],
+    }
+    (prov / "dja-v3-discovery.json").write_text(json.dumps(diag, indent=2, sort_keys=True))
+    return candidates, diag
+
+
+def resolve_candidate_url(candidate: dict[str, Any], fallback_template: str) -> tuple[str, str]:
+    for href in candidate.get("fits_hrefs", []) + candidate.get("file_hrefs", []):
+        if ".spec.fits" in href:
+            if href.startswith("http://") or href.startswith("https://"):
+                return href, "catalog_href"
+            if href.startswith("/"):
+                return "https://s3.amazonaws.com" + href, "catalog_href_relative"
+    return (
+        fallback_template.format(root=candidate["root"], file=candidate["file"]),
+        "catalog_root_file",
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", default="provenance/mom_bh1.yaml")
@@ -184,6 +339,7 @@ def main() -> None:
     zenodo_api = manifest["upstream"]["zenodo_api"]
     max_each = int(manifest["acquisition"]["max_file_mb"]) * 1024 * 1024
     max_total = int(manifest["acquisition"]["max_total_mb"]) * 1024 * 1024
+    radius = float(manifest["acquisition"]["dja_radius_arcsec"])
 
     # 1) Resolve the authors' Zenodo record and keep its full metadata as a receipt.
     record = requests.get(zenodo_api, timeout=60)
@@ -243,58 +399,71 @@ def main() -> None:
         }
     )
 
-    # 3) Ask DJA's rolling coordinate catalog. This is retained as an independent
-    # discovery receipt, but it is not authoritative for the v3 product used in
-    # the paper because the current endpoint can be v4-only.
+    # 3) Retain DJA's rolling coordinate query as a contemporary archive witness.
     dja_url = manifest["upstream"]["dja_query"].format(
         ra=f"{ra:.8f}",
         dec=f"{dec:.8f}",
-        size=manifest["acquisition"]["dja_radius_arcsec"],
+        size=radius,
     )
     dja = requests.get(dja_url, timeout=60)
     dja.raise_for_status()
     (prov / "dja-query.csv").write_text(dja.text)
     rows = parse_dja_rows(dja.text)
-
-    matches = [
+    rolling_matches = [
         row
         for row in rows
         if program in row.get("file", "")
         and grating in row.get("grating", "").lower()
-        and source_id in row.get("file", "")
     ]
+
+    # 4) Discover the historical v3 EXCELS row from the v3 release table by sky
+    # position. The EXCELS MSA source id need not equal the MoM source id.
+    v3_candidates, _ = discover_from_v3_catalog(
+        url=manifest["upstream"]["dja_v3_catalog"],
+        ra=ra,
+        dec=dec,
+        radius_arcsec=max(radius, 1.0),
+        program=program,
+        grating=grating,
+        source_id=source_id,
+        prov=prov,
+    )
 
     selected: dict[str, Any] | None = None
     g395m_path = raw / "excels_g395m.fits"
     probe_receipts: list[dict[str, Any]] = []
 
-    if matches:
-        matches.sort(
-            key=lambda row: (
-                1 if row.get("root", "").endswith("-v3") else 0,
-                float(row.get("sn50", "-1") or -1),
-            ),
-            reverse=True,
-        )
-        candidate = matches[0]
-        dja_file = candidate["file"]
-        dja_root = candidate["root"]
-        url = manifest["upstream"]["dja_file"].format(root=dja_root, file=dja_file)
+    for candidate in v3_candidates:
+        url, route = resolve_candidate_url(candidate, manifest["upstream"]["dja_file"])
         probe = probe_download(url, g395m_path, max_bytes=max_each)
-        probe["route"] = "rolling_coordinate_catalog"
+        probe.update(
+            {
+                "route": route,
+                "root": candidate["root"],
+                "file": candidate["file"],
+                "sep_arcsec": candidate["sep_arcsec"],
+                "srcid": candidate["srcid"],
+            }
+        )
         probe_receipts.append(probe)
         if probe.get("downloaded"):
             selected = dict(candidate)
             selected["url"] = url
+            selected["version"] = "v3"
+            selected["selection_note"] = (
+                "Selected from DJA nirspec_graded_v3 by sky-position match to the pinned MoM spectrum."
+            )
+            break
 
-    # 4) If the rolling catalog cannot see the historical v3 extraction, probe
-    # the documented EXCELS roots directly using the pinned source identity.
+    # 5) If the v3 summary table does not expose a usable link, leave a bounded
+    # root-probe matrix as a diagnostic fallback. This is never accepted as
+    # identity evidence by itself.
     if selected is None:
         for root in target["excels_roots"]:
             filename = f"{root}_{grating}-f290lp_{program}_{source_id}.spec.fits"
             url = manifest["upstream"]["dja_file"].format(root=root, file=filename)
             probe = probe_download(url, g395m_path, max_bytes=max_each)
-            probe.update({"route": "documented_root_probe", "root": root, "file": filename})
+            probe.update({"route": "fallback_root_probe", "root": root, "file": filename})
             probe_receipts.append(probe)
             if probe.get("downloaded"):
                 selected = {
@@ -302,10 +471,12 @@ def main() -> None:
                     "file": filename,
                     "grating": grating,
                     "program": program,
-                    "source_id": source_id,
+                    "srcid": source_id,
                     "version": root.rsplit("-", 1)[-1],
                     "url": url,
-                    "selection_note": "Pinned source_id probed against documented EXCELS roots.",
+                    "selection_note": (
+                        "Fallback root probe; verify against dja-v3-discovery.json before scientific use."
+                    ),
                 }
                 break
 
@@ -313,18 +484,26 @@ def main() -> None:
 
     if selected is None or not g395m_path.exists():
         raise RuntimeError(
-            f"Could not resolve EXCELS {grating} spectrum for pinned source_id={source_id}. "
-            "See run/provenance/dja-query.csv and dja-probes.json."
+            f"Could not resolve EXCELS {grating} spectrum near MoM source_id={source_id}. "
+            "See dja-v3-discovery.json, dja-query.csv, and dja-probes.json."
+        )
+
+    # Reject a syntactically downloadable file that is not actually a spectrum.
+    if read_spec1d(g395m_path) is None:
+        raise RuntimeError(
+            f"Resolved EXCELS file {selected.get('file')} downloaded but is not a readable SPEC1D FITS product."
         )
 
     receipts.append(
         {
             "role": "excels_g395m_selected",
-            "source_id": source_id,
+            "mom_source_id": source_id,
+            "excels_srcid": selected.get("srcid"),
             "url": selected["url"],
             "root": selected.get("root"),
             "file": selected.get("file"),
             "version": selected.get("version"),
+            "sep_arcsec": selected.get("sep_arcsec"),
             "bytes": g395m_path.stat().st_size,
             "sha256": sha256(g395m_path),
         }
@@ -334,10 +513,10 @@ def main() -> None:
         "target": target,
         "sources": receipts,
         "selection": {
-            "source_id": source_id,
+            "mom_source_id": source_id,
             "prism_candidate": prism_source.name,
             "sky_coordinates_deg": {"ra": ra, "dec": dec},
-            "rolling_dja_candidates": matches,
+            "rolling_dja_candidates": rolling_matches,
             "dja_selected": selected,
         },
     }
