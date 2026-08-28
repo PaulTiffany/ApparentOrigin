@@ -1,0 +1,37 @@
+object:
+  name: "MoM-BH*-1"
+  redshift: 7.7569
+  # Bootstrap sky position used only to discover the public DJA extraction.
+  # The acquisition script records the coordinates returned by DJA in the receipt.
+  ra_deg: 34.3975
+  dec_deg: -5.135111
+
+paper:
+  title: "A gas-enshrouded and gas-reddened black hole at cosmic dawn"
+  doi: "10.1038/s41586-026-10846-4"
+
+observations:
+  primer:
+    jwst_program: 1837
+    role: "NIRCam/MIRI imaging"
+    reduction: "DJA PRIMER v7.2 as used in the paper"
+  excels:
+    jwst_program: 3543
+    role: "NIRSpec G395M spectroscopy"
+    reduction: "DJA public msaexp reduction; paper used v3"
+  mom:
+    jwst_program: 5224
+    role: "NIRSpec PRISM spectroscopy"
+    zenodo_record: 15059214
+    zenodo_doi: "10.5281/zenodo.15059214"
+
+upstream:
+  zenodo_api: "https://zenodo.org/api/records/15059214"
+  dja_query: "https://grizli-cutout.herokuapp.com/nirspec_extractions"
+  dja_s3_template: "https://s3.amazonaws.com/msaexp-nirspec/extractions/{root}/{file}"
+
+policy:
+  raw_data_committed: false
+  cache_upstream_data: false
+  verify_sha256_after_download: true
+  results_are_derivatives: true
