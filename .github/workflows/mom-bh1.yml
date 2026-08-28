@@ -52,7 +52,7 @@ jobs:
 
       - name: Run observer-thinning preflight
         run: |
-          python src/experiment.py \
+          python src/experiment_bounded.py \
             --input run/raw/excels_g395m.fits \
             --prism run/raw/mom_prism.fits \
             --manifest provenance/mom_bh1.yaml \
