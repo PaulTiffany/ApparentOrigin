@@ -97,6 +97,20 @@ def bic(y: np.ndarray, model: np.ndarray, err: np.ndarray, k: int) -> tuple[floa
     return chi2 + k * math.log(n), chi2
 
 
+def strictly_feasible(p0: list[float], bounds: tuple[list[float], list[float]]) -> list[float]:
+    """Move optimizer seeds just inside existing bounds without changing them."""
+    lower, upper = bounds
+    out: list[float] = []
+    for value, lo, hi in zip(p0, lower, upper):
+        x = float(value)
+        if np.isfinite(lo) and x <= lo:
+            x = float(np.nextafter(float(lo), np.inf))
+        if np.isfinite(hi) and x >= hi:
+            x = float(np.nextafter(float(hi), -np.inf))
+        out.append(x)
+    return out
+
+
 def fit_models(
     wave: np.ndarray,
     flux: np.ndarray,
@@ -116,11 +130,11 @@ def fit_models(
     sigma0 = 0.018
     span = float(wave.max() - wave.min())
 
-    p0_v = [cont, 0.0, amp0, center, sigma0]
     bounds_v = (
         [-np.inf, -np.inf, 0.0, center - 0.025, 0.002],
         [np.inf, np.inf, np.inf, center + 0.025, min(0.08, span / 2)],
     )
+    p0_v = strictly_feasible([cont, 0.0, amp0, center, sigma0], bounds_v)
     popt_v, _ = curve_fit(
         virial_like,
         wave,
@@ -135,10 +149,17 @@ def fit_models(
     bic_v, chi2_v = bic(flux, pred_v, err, len(popt_v))
 
     residual = pred_v - flux
-    abs_idx = int(np.nanargmax(residual))
+    # The structured model predeclares absorption within +/-0.03 um of H-beta.
+    # Seed from the largest positive residual *inside that same region* rather
+    # than letting an unrelated edge residual create an infeasible p0.
+    absorption_region = np.abs(wave - center) <= 0.030
+    if not absorption_region.any():
+        raise RuntimeError("No samples inside the predeclared H-beta absorption region.")
+    candidate_indices = np.flatnonzero(absorption_region)
+    abs_idx = int(candidate_indices[np.nanargmax(residual[absorption_region])])
     abs_mu0 = float(wave[abs_idx])
     abs_amp0 = max(float(residual[abs_idx]), float(np.nanmedian(err)), 1e-6)
-    p0_s = [*popt_v, abs_amp0, abs_mu0, 0.004]
+
     bounds_s = (
         [
             -np.inf,
@@ -161,6 +182,7 @@ def fit_models(
             0.020,
         ],
     )
+    p0_s = strictly_feasible([*popt_v, abs_amp0, abs_mu0, 0.004], bounds_s)
     popt_s, _ = curve_fit(
         structured,
         wave,
