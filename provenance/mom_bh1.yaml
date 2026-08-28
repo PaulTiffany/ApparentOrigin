@@ -1,9 +1,17 @@
 target:
   name: "MoM-BH*-1"
+  source_id: 150135
   redshift: 7.7569
   nature_doi: "10.1038/s41586-026-10846-4"
   excels_program: 3543
   excels_grating: "g395m"
+  excels_roots:
+    - "excels-uds01-v3"
+    - "excels-uds02-v3"
+    - "excels-uds01-v4"
+    - "excels-uds02-v4"
+    - "excels-uds03-v4"
+    - "excels-uds04-v4"
   mom_program: 5224
   primer_program: 1837
 
