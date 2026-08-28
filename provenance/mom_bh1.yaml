@@ -33,3 +33,18 @@ experiment:
     # Predeclared phase-0 thresholds. A scientific negative result does not fail CI.
     min_full_delta_bic: 10.0
     min_delta_bic_drop: 5.0
+
+phase1:
+  calibration:
+    relation: "relative Greene-Ho-style Hbeta virial scaling"
+    doi: "10.1086/431897"
+    luminosity_exponent: 0.59
+    fwhm_exponent: 2.0
+  mask_control:
+    # Nature reports one systemic absorber and side absorbers near +/-1500 km/s.
+    centers_kms: [0.0, -1500.0, 1500.0]
+    halfwidth_kms: 500.0
+  falsification:
+    # Fixed before the Phase-1A workflow is run. Scientific negatives remain green CI.
+    min_low_r_virial_residue_dex: 0.30
+    min_virial_residue_increase_dex: 0.20
