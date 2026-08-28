@@ -1,0 +1,8 @@
+# Upstream science data are fetched into ephemeral CI runners.
+run/
+data/
+*.fits
+*.fits.gz
+__pycache__/
+*.pyc
+.venv/
