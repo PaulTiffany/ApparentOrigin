@@ -48,10 +48,10 @@ jobs:
         run: |
           python src/acquire.py --manifest provenance/mom_bh1.yaml --out run
 
-      - name: One-shot EXCELS coordinate discovery
+      - name: Diagnose EXCELS v3 identity by redshift
         if: failure()
         run: |
-          python src/discover_v44.py
+          python src/diagnose_v3_identity.py
 
       - name: Record software environment
         run: |
