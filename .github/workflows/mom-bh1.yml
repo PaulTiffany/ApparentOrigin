@@ -53,6 +53,11 @@ jobs:
         run: |
           python src/diagnose_v3_identity.py
 
+      - name: Diagnose MoM prism coordinate fields
+        if: failure()
+        run: |
+          python src/diagnose_mom_coords.py
+
       - name: Record software environment
         run: |
           mkdir -p run/provenance
