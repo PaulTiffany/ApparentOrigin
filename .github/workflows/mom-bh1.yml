@@ -48,6 +48,11 @@ jobs:
         run: |
           python src/acquire.py --manifest provenance/mom_bh1.yaml --out run
 
+      - name: One-shot EXCELS coordinate discovery
+        if: failure()
+        run: |
+          python src/discover_v44.py
+
       - name: Record software environment
         run: |
           mkdir -p run/provenance
