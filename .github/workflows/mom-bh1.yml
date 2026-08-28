@@ -1,0 +1,79 @@
+name: MoM-BH*-1 observer thinning
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/mom-bh1.yml"
+      - "provenance/mom_bh1.yaml"
+      - "requirements.txt"
+      - "src/**"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/mom-bh1.yml"
+      - "provenance/mom_bh1.yaml"
+      - "requirements.txt"
+      - "src/**"
+
+permissions:
+  contents: read
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout experiment code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m compileall -q src
+
+      - name: Acquire exact public spectra
+        run: |
+          python src/acquire_exact.py --manifest provenance/mom_bh1.yaml --out run
+
+      - name: Record software environment
+        run: |
+          mkdir -p run/provenance
+          python -m pip freeze > run/provenance/python-freeze.txt
+          python --version > run/provenance/python-version.txt
+
+      - name: Run observer-thinning preflight
+        run: |
+          python src/experiment.py \
+            --input run/raw/excels_g395m.fits \
+            --prism run/raw/mom_prism.fits \
+            --manifest provenance/mom_bh1.yaml \
+            --out run/results
+
+      - name: Publish scientific result to workflow summary
+        if: always()
+        run: |
+          if [ -f run/results/summary.md ]; then
+            cat run/results/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Experiment did not reach the scientific summary stage." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload small receipts and results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mom-bh1-observer-thinning
+          path: |
+            run/provenance/
+            run/results/
+          if-no-files-found: warn
+          retention-days: 30

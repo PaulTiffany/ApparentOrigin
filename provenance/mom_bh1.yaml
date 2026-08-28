@@ -1,0 +1,50 @@
+target:
+  name: "MoM-BH*-1"
+  source_id: 150135
+  redshift: 7.7569
+  nature_doi: "10.1038/s41586-026-10846-4"
+  excels_program: 3543
+  excels_grating: "g395m"
+  mom_program: 5224
+  primer_program: 1837
+
+upstream:
+  zenodo_doi: "10.5281/zenodo.15059214"
+  zenodo_api: "https://zenodo.org/api/records/15059214"
+  dja_home: "https://dawn-cph.github.io/dja/"
+  dja_query: "https://grizli-cutout.herokuapp.com/nirspec_extractions?coords={ra},{dec}&size={size}&output=csv"
+  # Retained as a provenance witness for the historical archive, not fetched by normal CI.
+  dja_v3_catalog_json: "https://s3.amazonaws.com/msaexp-nirspec/extractions/nirspec_graded_v3.json"
+  dja_file: "https://s3.amazonaws.com/msaexp-nirspec/extractions/{root}/{file}"
+
+acquisition:
+  # Protect hosted runners from accidentally mirroring a large archive.
+  max_file_mb: 128
+  max_total_mb: 256
+  # Discovery cone for DJA's coordinate service.
+  dja_radius_arcsec: 0.6
+  # Cross-survey identity must be much tighter than the discovery cone.
+  identity_radius_arcsec: 0.2
+
+experiment:
+  hbeta_half_window_um: 0.07
+  target_resolutions: [1200, 1000, 800, 600, 400, 250, 150, 100]
+  falsification:
+    # Predeclared phase-0 thresholds. A scientific negative result does not fail CI.
+    min_full_delta_bic: 10.0
+    min_delta_bic_drop: 5.0
+
+phase1:
+  calibration:
+    relation: "relative Greene-Ho-style Hbeta virial scaling"
+    doi: "10.1086/431897"
+    luminosity_exponent: 0.59
+    fwhm_exponent: 2.0
+  mask_control:
+    # Nature reports one systemic absorber and side absorbers near +/-1500 km/s.
+    centers_kms: [0.0, -1500.0, 1500.0]
+    halfwidth_kms: 500.0
+  falsification:
+    # Fixed before the Phase-1A workflow is run. Scientific negatives remain green CI.
+    min_low_r_virial_residue_dex: 0.30
+    min_virial_residue_increase_dex: 0.20

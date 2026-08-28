@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite this software and also cite the astronomical sources identified in the README."
+title: "ApparentOrigin: observer-bounded reconstruction experiments"
+type: software
+authors:
+  - family-names: Tiffany
+    given-names: Paul
+repository-code: "https://github.com/PaulTiffany/ApparentOrigin"
+url: "https://github.com/PaulTiffany/ApparentOrigin"
+license: MIT
+keywords:
+  - astronomy
+  - JWST
+  - black holes
+  - reproducible research
+  - observer-bounded reconstruction
