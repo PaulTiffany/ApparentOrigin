@@ -9,13 +9,21 @@ The first experiment uses the public JWST observations behind Naidu et al. (2026
 The repository does **not** vendor the telescope data. GitHub Actions starts from an empty runner and:
 
 1. queries the authors' Zenodo record (`10.5281/zenodo.15059214`),
-2. downloads only bounded FITS spectrum products,
-3. recovers the target sky position from the public spectrum,
-4. asks the DAWN JWST Archive for the matching EXCELS `G395M` extraction,
-5. downloads only that reduced spectrum,
-6. records source URLs, archive metadata, SHA-256 hashes, and the Python environment,
-7. runs the observer-thinning experiment, and
-8. publishes only small receipts, tables, and plots as workflow artifacts.
+2. selects the pinned MoM source `150135` and reads its sky position from FITS metadata,
+3. asks the DAWN JWST Archive for the matching EXCELS `G395M` extraction,
+4. identifies EXCELS source `119077` at 0.064 arcsec separation,
+5. retrieves the frozen v3 product used for the experiment,
+6. validates its FITS position and H-beta wavelength coverage,
+7. records source URLs, archive metadata, SHA-256 hashes, and the Python environment,
+8. runs the observer-thinning experiment, and
+9. publishes only small receipts, tables, and plots as workflow artifacts.
+
+The selected EXCELS input is:
+
+```text
+excels-uds01-v3_g395m-f290lp_3543_119077.spec.fits
+SHA-256 f155a6038bf0f47a61ae76ed535532e00962bade3ec5ed1c8a41b2ff0498fdbd
+```
 
 Raw telescope products die with the runner.
 
@@ -34,9 +42,25 @@ The operational access quantity is initially
 Omega(R) = Delta BIC = BIC_virial-like - BIC_structured
 ```
 
-Positive `Delta BIC` favors the structured profile. The predeclared necessary-condition test asks whether `Omega` is strong at native G395M resolution and collapses under controlled thinning.
+Positive `Delta BIC` favors the structured profile. The predeclared necessary-condition test required `Delta BIC >= 10` at native resolution and a drop of at least `5` under thinning.
 
-This does **not** reproduce the paper's Cloudy/COLT inference and does not claim a ground-truth black-hole mass. The reported mass column is only a literature-anchored `M ~ FWHM^2` virial proxy. A later phase can replace the empirical surrogate with the actual competing forward models if Phase 0 survives.
+### First CI result
+
+The first green run supports that necessary condition:
+
+| Resolving power R | Delta BIC |
+| ---: | ---: |
+| 1000 | 32.48 |
+| 800 | 21.48 |
+| 600 | 12.17 |
+| 400 | -1.46 |
+| 250 | -10.84 |
+| 150 | -13.02 |
+| 100 | -13.20 |
+
+Across the ladder, `Delta BIC` drops by `45.67` with Spearman `rho = 1.000` for resolving power versus distinguishability. The structured H-beta model is strongly preferred at native G395M resolution and loses that preference under controlled spectral thinning.
+
+This is a **necessary-condition preflight**, not the final dual-operator mass experiment. It does **not** reproduce the paper's Cloudy/COLT inference, establish a ground-truth black-hole mass, or yet show the predicted 1-2 dex mass-reconstruction trajectory. The reported mass column is only a literature-anchored `M ~ FWHM^2` virial proxy. The next scientific phase is to replace the empirical structured surrogate with the competing radiative-transfer reconstruction and test mass drift directly.
 
 ## Provenance rule
 
