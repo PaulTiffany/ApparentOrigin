@@ -1,0 +1,880 @@
+% Standalone rigorous proof of FFTC Part 1 (reduced, curve-local) and a
+% companion Observer-Relative Stokes theorem with bulk and boundary residues.
+%
+% Draft v7 (rigor pass for AGI-26 Kurzweil Prize submission).
+% Changes from v6:
+%   [P0] Gauge-covariance of F_gamma corrected. Def. of F_gamma (def:int)
+%        is now explicitly frame-relative: different trivializations
+%        yield different sections, and the FFTC identity (eq:fftc1) is
+%        a family of identities indexed by trivialization, with the
+%        connection-coupling term A_O[T] F_gamma absorbing path-ordering
+%        dependence. Theorem 2 statement and proof Step 5 rewritten
+%        accordingly. Rmk rem:gauge-F rewritten honestly.
+%        A new Frame-Comparison Lemma (lem:framecomp) makes the
+%        frame-independence of norm bounds explicit.
+%   [P1] Rmk rem:holodep (H_O path-dependence) replaces the non-
+%        terminating "recursion" argument of v6 with a direct one-line
+%        eta * bar(eta) estimate, factor 2.
+%   [P2] Def. of g_O's degeneracy and the ambient-measure choice for K_O
+%        now flagged in-place in Def. 1 and Def. 3. Sup in
+%        ||A_O||_{gO x hO, infty} is explicitly over O-visible directions.
+%   [P3] Dropped rho-hat = D_O aliasing (notation collision with the
+%        Cacophony regime index). D_O is used throughout. A new
+%        Notation section front-loads the legend and distinguishes
+%        kappa_O (curvature) from kappa_t (condition number in the
+%        main paper's Prop. 2).
+%   [P4] Principia Book IV Lemma 2646 replaced by inline Lem. lem:gO
+%        (properties of g_O) with a short proof. No external Principia
+%        reference is load-bearing in this standalone document.
+%        (H3) is separated from its pipeline-instantiation narrative,
+%        which now lives in a standalone Rmk.
+%   [P5] Minor: "Standard bound; not a load-bearing idealization"
+%        editorial removed from the injectivity-radius assumption.
+%        book4.tex line-number citation replaced by explicit inline
+%        computation in the Stokes footnote. Added a one-line
+%        contractibility remark (rem:triv) justifying bundle triviality
+%        over simply-connected Sigma with boundary.
+%
+% Scope unchanged: Part 1 (reduced) only. Part 2 and the Book IV
+% operator with E_acc remain deferred.
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+
+\newcommand{\Kt}{\mathcal{K}_t}
+\newcommand{\sO}{s_{\mathcal{O}}}  % observer kernel scale (was \rmin in earlier drafts)
+\newcommand{\Obs}{\mathcal{O}}
+\newcommand{\Eps}{\varepsilon_{\Obs}}
+\newcommand{\intO}{\int_{\Obs}}
+\newcommand{\kappaO}{\kappa_{\Obs}}
+\newcommand{\FO}{F_{\Obs}}
+\newcommand{\HolO}{\mathcal{H}_{\Obs}}
+\newcommand{\IntO}{\mathcal{I}_{\Obs}}
+\newcommand{\resO}{\rho_{\Obs}}
+\newcommand{\nablaO}{\nabla_{\Obs}}
+\newcommand{\AO}{A_{\Obs}}
+\newcommand{\gO}{g_{\Obs}}
+\newcommand{\hO}{h_{\Obs}}
+\newcommand{\KO}{K_{\Obs}}
+\newcommand{\mask}{\mu}
+\newcommand{\DO}{D_{\Obs}}
+\newcommand{\EE}{E}
+\newcommand{\End}{\mathrm{End}}
+\newcommand{\Sect}{\Gamma}
+\newcommand{\Cframe}{C_{\mathrm{frame}}}
+
+\title{Companion Manuscript, Figure~2: \\
+Fuzzy Fundamental Theorem of Calculus and \\
+Observer-Relative Stokes\\[0.4em]
+\large Bundle-Valued, Curve-Local FFTC (Part~1, Reduced) and a
+Companion Stokes Theorem with Bulk and Boundary Residues\\[0.2em]
+\normalsize Proofs supporting Figure~2 and Theorems~1--2 of the
+Hypothesis Surface manuscript (\S5, \texttt{main.tex}).}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent This companion manuscript provides the full rigorous
+proofs for the Fuzzy Fundamental Theorem of Calculus (Part~1,
+reduced, curve-local) and the Observer-Relative Stokes theorem
+with bulk and boundary residues, as displayed in Figure~2 of the
+Hypothesis Surface paper. The bundle-valued formalism developed
+here (observer-relative symbolic bundle $(\EE, \hO, \nablaO)$
+with kernel-scale $\sO$, connection 1-form $\AO$, and curvature
+$\kappaO$) underpins Figure~3's observer-bounded cohomology
+and provides the geometric objects referenced by the companion
+manuscript \texttt{fig3\_companion\_scaling\_cohomology.tex}.
+\end{abstract}
+
+\section*{0. Notation}
+
+Symbols used throughout, grouped by layer. Distinctions from
+overlapping symbols in the companion Cacophony paper and main
+Hypothesis Surface paper are noted explicitly.
+
+\smallskip
+\noindent\emph{Ambient geometry.}
+$(M, g)$: finite-rank smooth Riemannian manifold;
+$|\Kt|$: open patch of $M$ coordinatized by the simplicial claim
+complex $\Kt$;
+$\mathrm{inj}(M, g)$: classical injectivity radius;
+$\tau^{\nabla}_{y \to x}$: parallel transport along the $g$-geodesic
+from $y$ to $x$.
+
+\smallskip
+\noindent\emph{Observer data.}
+$\sO$: observer kernel scale (fixed, $< \mathrm{inj}(M, g)$);
+$\KO^{\mathrm{tan}}: TM \to TM$: tangent-space smoothing operator;
+$\gO$: observer-induced fuzzy Riemannian metric (Eq.~\eqref{eq:gO-def});
+$\KO: M \times M \to \mathbb{R}_{\geq 0}$: section-smoothing scalar
+kernel (distinct from $\KO^{\mathrm{tan}}$; shared scale $\sO$);
+$\Eps$: observer error budget (Def.~\ref{def:oreg}).
+
+\smallskip
+\noindent\emph{Symbolic bundle.}
+$\EE \to |\Kt|$: Hermitian complex vector bundle, finite rank;
+$\hO$: fiber metric;
+$\nablaO$: connection, with 1-form $\AO \in \Omega^1(|\Kt|, \End(\EE))$;
+$\DO := d + \AO$: symbolic covariant derivative. \textbf{Note.} The
+symbol $\hat\rho$ is reserved in the companion papers for the
+\emph{regime index} (Cacophony paper) and \emph{masking-rate companion
+diagnostic} (main text). We do \emph{not} use $\hat\rho$ for $\DO$
+here, to avoid collision.
+$\kappaO = \FO := d\AO + \AO \wedge \AO \in \Omega^2(|\Kt|, \End(\EE))$:
+curvature 2-form. \textbf{Distinct} from $\kappa_t$ in main-text
+Prop.~2 (condition number of the claim-interaction matrix $\tilde\Gamma_t$).
+
+\smallskip
+\noindent\emph{FFTC objects.}
+$f \in \Sect(\EE)$: epistemic field (section);
+$F_\gamma$: reduced observer-bounded integral along $\gamma$
+(Def.~\ref{def:int}; frame-relative);
+$\eta_\Obs$: kernel-smoothing residue (Def.~\ref{def:oreg});
+$\resO$: FFTC residue (Cor.~\ref{cor:torsion}), a section along
+$\gamma$; \textbf{distinct} from the 2-form $\kappaO$;
+$\IntO, \HolO$: bulk interaction and boundary holonomy residues
+(Thm.~\ref{thm:ostokes}).
+
+\smallskip
+\noindent\emph{Anti-masking bridge.}
+$\mask$: masking rate (Invariant~2 of the main text), a text-level
+diagnostic. The map from $\mask$ to bundle-level bounds on $\resO$ is
+declarative in Cor.~\ref{cor:mask} and scoped to adjacent work.
+
+\section*{1. Setup}
+
+Let $\Kt$ be the simplicial claim complex at time $t$: vertices are
+claims $C_i$ carrying fibers $\phi_i = (\sigma_i, r_i, \mathcal{W}_i)$
+with resolution $r_i \in (0, \infty]$. Fix an observer kernel scale
+$\sO > 0$ governing the smoothing radius below.
+
+\smallskip
+\noindent\textbf{Ambient smooth substrate.}
+We do \emph{not} reconstruct smooth structure from $\Kt$. Instead, we
+identify $|\Kt|$ with (an open patch of) a smooth Riemannian manifold
+$(M, g)$ of finite rank $n$; the simplicial skeleton $\Kt$ serves as
+a combinatorial coordinatization of $M$, and all geometric operations
+are carried out on $(M, g)$. Piecewise-smooth paths
+$\gamma: [a, b] \to M$ are well-defined in the usual sense; we
+require only piecewise smoothness, not global smoothness of $\gamma$.
+This inherits smooth structure rather than producing it from $\Kt$,
+and sidesteps the CW-vs.-smooth passage entirely.
+
+\smallskip
+\noindent\textbf{The observer-induced metric $\gO$.}
+Let $\KO^{\mathrm{tan}}: TM \to TM$ be a smoothing operator on the
+tangent bundle with characteristic scale $\sO$, fiber-preserving
+($\KO^{\mathrm{tan}}(T_pM) \subseteq T_pM$) and self-adjoint with
+respect to $g$. The \emph{observer-induced metric} is
+\begin{equation}
+\gO(p)(v, w) \;:=\; \big\langle \KO^{\mathrm{tan}} v,\; \KO^{\mathrm{tan}} w\big\rangle_{g(p)},
+\qquad v, w \in T_pM.
+\label{eq:gO-def}
+\end{equation}
+Basic properties are elementary; we record them for later use.
+
+\begin{lemma}[Properties of $\gO$]
+\label{lem:gO}
+The bilinear form $\gO$ defined by Eq.~\eqref{eq:gO-def} satisfies:
+\begin{enumerate}[label=(\roman*)]
+\item $\gO(v, w) = \gO(w, v)$ (symmetric).
+\item $\gO(v, v) \geq 0$, with equality iff $\KO^{\mathrm{tan}} v = 0$
+(positive-semidefinite; $\ker \KO^{\mathrm{tan}} \subseteq T_pM$ is
+the space of tangent directions \emph{invisible to $\Obs$}).
+\end{enumerate}
+In particular, $\gO$ is a pseudo-metric in the sense that
+$\gO(v, v) = 0$ does not force $v = 0$: sub-$\sO$ tangent directions
+are $\Obs$-indistinguishable, which is the geometric meaning of
+bounded observation.
+\end{lemma}
+\begin{proof}
+(i) $\langle \KO^{\mathrm{tan}} v, \KO^{\mathrm{tan}} w \rangle_g
+= \langle v, (\KO^{\mathrm{tan}})^2 w \rangle_g
+= \langle (\KO^{\mathrm{tan}})^2 v, w \rangle_g
+= \langle \KO^{\mathrm{tan}} w, \KO^{\mathrm{tan}} v \rangle_g$
+by the self-adjointness of $\KO^{\mathrm{tan}}$.
+(ii) $\gO(v, v) = \|\KO^{\mathrm{tan}} v\|_g^2 \geq 0$, with equality
+iff $\KO^{\mathrm{tan}} v = 0$.
+\end{proof}
+
+\smallskip
+\noindent\textbf{Injectivity radius.}
+We assume $\sO < \mathrm{inj}(M, g)$. This ensures the exponential
+map and parallel transport along geodesics are well-defined on
+$\sO$-balls, which is used in Def.~\ref{def:kernel} (fiberwise
+convolution) and Thm.~\ref{thm:ostokes} (closing-arc $\eta$).
+
+\begin{remark}[Scope of the passage from $\Kt$ to $M$]
+\label{rem:passage}
+The discrete exterior calculus of Desbrun--Hirani (2003) is a
+heavyweight alternative that constructs calculus intrinsically on
+simplicial complexes; the smooth-substrate route adopted here is
+lighter and suffices for the Hypothesis Surface paper's purposes.
+\end{remark}
+
+\section*{2. The Observer-Relative Symbolic Bundle}
+
+We work in a bundle-valued formalism, which matches the gauge-theoretic
+framing of the main paper's companion manuscript and avoids the
+scalar/non-abelian mismatch that earlier drafts exhibited.
+
+\begin{definition}[Observer-Relative Symbolic Bundle]
+\label{def:bundle}
+Let $(\EE, \hO) \to |\Kt|$ be a Hermitian complex vector bundle of
+finite rank with smoothly varying fiber metric $\hO$. An
+\emph{observer-relative symbolic bundle} is a triple
+$(\EE, \hO, \nablaO)$ where $\nablaO$ is a metric-compatible affine
+connection on $\EE$ with connection 1-form
+$\AO \in \Omega^1(|\Kt|, \End(\EE))$, assumed $\Obs$-bounded:
+$\|\AO\|_{\gO \otimes \hO, \infty} < \infty$, where
+\begin{equation}
+\|\AO\|_{\gO \otimes \hO, \infty}
+\;:=\; \sup_{x \in |\Kt|}\;
+      \sup_{\substack{v \in T_x|\Kt|\\ \|v\|_{\gO} = 1}}\,
+      \big\|\AO(x)[v]\big\|_{\End(\EE_x), \hO},
+\label{eq:AOnorm}
+\end{equation}
+and $\|\cdot\|_{\End(\EE_x), \hO}$ is the operator norm on
+$\End(\EE_x)$ induced by $\hO$
+(i.e.\ $\|T\| := \sup_{\|w\|_{\hO}=1} \|Tw\|_{\hO}$).
+The \emph{symbolic curvature} is
+\[
+\kappaO \;=\; \FO \;:=\; d\AO + \AO \wedge \AO \;\in\; \Omega^2(|\Kt|, \End(\EE)),
+\]
+well-defined because $\AO$ is $\End(\EE)$-valued (the wedge uses
+composition in $\End(\EE)$). Epistemic fields are sections
+$f \in \Sect(\EE)$.
+\end{definition}
+
+\begin{remark}[The sup in Eq.~\eqref{eq:AOnorm} is over $\Obs$-visible
+directions]
+\label{rem:AOnorm-visible}
+Because $\gO$ is degenerate on $\ker \KO^{\mathrm{tan}}$
+(Lem.~\ref{lem:gO}(ii)), the inner sup in Eq.~\eqref{eq:AOnorm}
+effectively ranges only over $\Obs$-visible unit tangent directions:
+$\AO$'s action on $\ker \KO^{\mathrm{tan}}$ is unconstrained by
+$\|\AO\|_{\gO \otimes \hO, \infty} < \infty$. This is harmless for
+curve-local results because the FFTC (Thm.~\ref{thm:fftc1}) requires
+$\|\dot\gamma\|_{\gO} > 0$ on smooth segments, which forbids
+$\dot\gamma \in \ker \KO^{\mathrm{tan}}$; the integrand in
+Thm.~\ref{thm:ostokes} similarly couples $\AO$ only to $\Obs$-visible
+tangents.
+\end{remark}
+
+\begin{definition}[Observer-Relative Symbolic Space on $\Kt$]
+\label{def:space}
+The \emph{observer-relative symbolic space} over $\Kt$ is the tuple
+$(|\Kt|, \gO, \EE, \hO, \nablaO, \kappaO)$ where $\gO$ is the fuzzy
+Riemannian metric on $|\Kt|$ (Eq.~\eqref{eq:gO-def}, with kernel
+scale $\sO$: distances below $\sO$ are indistinguishable under
+$\gO$), and $(\EE, \hO, \nablaO)$ is the symbolic bundle of
+Def.~\ref{def:bundle}.
+\end{definition}
+
+\begin{definition}[Observer Convolution Kernel (on $\EE$-sections)]
+\label{def:kernel}
+Distinct from the tangent-space kernel $\KO^{\mathrm{tan}}$ of
+Eq.~\eqref{eq:gO-def}: let $\KO: M \times M \to \mathbb{R}_{\geq 0}$
+be a smooth, symmetric, normalized ($\int \KO(x, y)\,dy_g = 1$, where
+$dy_g$ is the volume form of the ambient $g$) scalar kernel with
+support of radius $\sO$ in the $g$-metric. For $f \in \Sect(\EE)$,
+convolution acts fiberwise via parallel transport along $\nablaO$:
+\[
+(\KO * f)(x) \;:=\; \int \KO(x, y)\, \tau^{\nablaO}_{y \to x}\!\left[f(y)\right] dy_g,
+\]
+where $\tau^{\nablaO}_{y \to x}: \EE_y \to \EE_x$ is parallel
+transport along the unique $g$-geodesic from $y$ to $x$ inside the
+$\sO$-ball (well-defined by $\sO < \mathrm{inj}(M, g)$). Both
+kernels share the scale $\sO$; $\KO^{\mathrm{tan}}$ governs the
+metric $\gO$, while $\KO$ governs section smoothing. As
+$\sO \to 0$, $\KO \to \delta$ and
+$\tau^{\nablaO} \to \mathrm{id}$ on the (vanishing) support,
+recovering pointwise evaluation of $f$.
+\end{definition}
+
+\begin{remark}[Choice of ambient measure]
+\label{rem:ambient-measure}
+The volume form $dy_g$ and the kernel's support radius are taken with
+respect to the ambient metric $g$, not $\gO$: $\gO$ is degenerate
+(Lem.~\ref{lem:gO}) and carries no natural volume form. This is a
+deliberate asymmetry of the observer-relative framework. The observer
+sets the \emph{scale} $\sO$; the \emph{measure} against which $\KO$
+is normalized is the classical one. The observer's bounded resolution
+manifests in the support size of $\KO$ (at scale $\sO$) and in the
+degeneracy of $\gO$, not in the base measure. No result below
+requires an observer-relative volume form.
+\end{remark}
+
+\begin{definition}[Symbolic Covariant Derivative]
+\label{def:cov}
+The \emph{symbolic covariant derivative} is the exterior covariant
+derivative induced by $\nablaO$:
+\[
+\DO \;=\; d^{\nablaO}: \Sect(\EE) \to \Omega^1(|\Kt|, \EE),
+\qquad \DO f \;=\; df + \AO \cdot f,
+\]
+where $\AO \cdot f$ is the fibrewise action of $\AO \in \End(\EE)$ on
+$f \in \EE$. In the classical differentiation--integration duality,
+$\DO$ is the fuzzy-symbolic analogue of $d/dx$: it resolves an
+epistemic state into conflict components.
+\end{definition}
+
+\begin{definition}[Observer-Bounded Integration along a Curve, Reduced]
+\label{def:int}
+\emph{This is a frame-relative construction.} Fix a piecewise-smooth
+curve $\gamma: [a, b] \to |\Kt|$ and a smooth local trivialization
+$\Phi: \EE|_U \cong U \times \mathbb{C}^k$ over a tubular
+neighborhood $U \supset \gamma([a, b])$. In $\Phi$, the
+kernel-smoothed field $(\KO * f)(x) \in \EE_x$ has components
+$(\KO * f)^\alpha(x) \in \mathbb{C}$, $\alpha = 1, \ldots, k$. The
+\emph{reduced observer-bounded integral along $\gamma$ in $\Phi$} is
+the map $[a, b] \to \EE$ with $F_\gamma(s) \in \EE_{\gamma(s)}$ given
+by componentwise integration in $\Phi$:
+\[
+F_\gamma^\alpha(s) \;:=\; \int_a^s (\KO * f)^\alpha(\gamma(u))\; \|\dot\gamma(u)\|_{\gO}\, du,
+\qquad F_\gamma(s) \;:=\; F_\gamma^\alpha(s)\, e_\alpha(\gamma(s)),
+\]
+where $\{e_\alpha\}$ is the frame associated to $\Phi$. Throughout
+Sections~3--5, the trivialization $\Phi$ on $U$ is fixed, and all
+results below are asserted relative to $\Phi$; frame-dependence is
+tracked explicitly in Rmk.~\ref{rem:gauge-F}.
+\end{definition}
+
+\begin{remark}[Reduced operator vs.\ full symbolic-integration operator]
+\label{rem:reduced}
+Def.~\ref{def:int} proves a \emph{reduced} FFTC. A fuller operator,
+following the companion manuscript, augments this with a
+memory\slash distortion term $E_{\mathrm{acc}}(\gamma, f)$ capturing tangent
+blur and homotopy-class residues. The \emph{reduced} version is the
+load-bearing object for the main paper's integrability claim
+($\mask = 0$ at the kernel/metric level); the $E_{\mathrm{acc}}$
+contribution is a separate layer whose local piece can be absorbed
+into $\resO(f, \gamma)$ under $\Obs$-regularity and whose topological
+piece is Part~2 territory (not established here). We flag this scope
+boundary explicitly rather than silently redefining the fuller
+operator.
+\end{remark}
+
+\begin{remark}[Frame-dependence of $F_\gamma$; compatibility under
+frame changes]
+\label{rem:gauge-F}
+$F_\gamma$ is a \emph{frame-relative} construction: different smooth
+trivializations of $\EE|_U$ yield different sections along $\gamma$.
+Under a smooth frame change
+$\Phi \to \Psi$ with transition $g: U \to GL(k, \mathbb{C})$
+(so $e_\alpha \mapsto g^\beta_\alpha(x) e_\beta$), the components
+of $(\KO * f)$ transform as
+$(\KO * f)^{\tilde\beta}(x) = (g^{-1}(x))^\beta_\alpha (\KO * f)^\alpha(x)$.
+Re-computing Def.~\ref{def:int} in $\Psi$ yields
+\[
+\tilde F_\gamma^\beta(s) \;=\; \int_a^s (g^{-1}(\gamma(u)))^\beta_\alpha (\KO * f)^\alpha(\gamma(u))\, \|\dot\gamma\|_{\gO}\, du,
+\]
+which in general \emph{differs from} $(g^{-1}(\gamma(s)))^\beta_\alpha F_\gamma^\alpha(s)$
+whenever $g$ varies along $\gamma$: the pointwise pullback does not
+commute with the $u$-integral. This is the familiar path-ordering
+obstruction. Two relevant regimes:
+\begin{enumerate}[label=(\alph*)]
+\item \emph{Rigid frame changes} ($dg \equiv 0$ on $\gamma$, e.g., $g$
+constant on $\gamma$): $g$ commutes with the integral, so
+$\tilde F_\gamma = g^{-1} F_\gamma$ pointwise, and
+Eq.~\eqref{eq:fftc1} transforms covariantly.
+\item \emph{Position-dependent frame changes} ($dg \not\equiv 0$ on
+$\gamma$): Eq.~\eqref{eq:fftc1} is a family of identities indexed by
+$\Phi$; in each chosen $\Phi$, the identity holds (same proof), with
+the connection-coupling term $\AO[T_\gamma] \cdot F_\gamma$ absorbing
+the path-ordering dependence. See Step~5 of the proof of
+Thm.~\ref{thm:fftc1}.
+\end{enumerate}
+The \emph{norm bound} Cor.~\ref{cor:torsion} is frame-independent up
+to the bounded frame-comparison constant $\Cframe$ of
+Lem.~\ref{lem:framecomp}; downstream users (Cor.~\ref{cor:mask}) rely
+only on this bound, not on a strict geometric invariance of
+$F_\gamma$ itself.
+\end{remark}
+
+\begin{lemma}[Frame-comparison constant]
+\label{lem:framecomp}
+Let $\Phi, \Psi$ be two smooth trivializations of $\EE$ over an open
+$U \subset |\Kt|$, with transition $g: U \to GL(k, \mathbb{C})$. On
+any compact $K \subset U$ there exists
+$\Cframe = \Cframe(K, \Phi, \Psi, \hO) \in (0, \infty)$ such that for
+every $v \in \EE_x$ with $x \in K$,
+\[
+\Cframe^{-1}\, \|v\|_{\Phi, 2} \;\leq\; \|v\|_{\hO} \;\leq\; \Cframe\, \|v\|_{\Phi, 2},
+\]
+where $\|\cdot\|_{\Phi, 2}$ denotes the Euclidean norm on components
+in the frame $\Phi$, and analogously for $\Psi$. Consequently, norm
+bounds obtained via componentwise estimates in $\Phi$ imply norm
+bounds in $\hO$ up to the factor $\Cframe$, and any two such
+estimates for a given section differ by a factor $\leq \Cframe^2$.
+\end{lemma}
+\begin{proof}
+$\hO$ is smooth and positive-definite on fibers; the frame $\Phi$
+induces a smooth fiber-wise Hermitian Gramian matrix $H_\Phi(x)$
+relating $\|\cdot\|_{\Phi, 2}$ to $\|\cdot\|_{\hO}$. $H_\Phi$ is
+continuous on the compact $K$, so it is uniformly bounded above and
+below; take $\Cframe$ as the square root of the ratio of its largest
+to smallest eigenvalues over $K$.
+\end{proof}
+
+\begin{definition}[$\Obs$-Regularity]
+\label{def:oreg}
+A section $f \in \Sect(\EE)$ is \emph{$\Obs$-regular} if there exists
+$\Eps < \infty$ such that
+\[
+\|(\KO * f)(x) - f(x)\|_{\hO} \;\leq\; \Eps \qquad \forall x \in |\Kt|.
+\]
+The scalar $\Eps$ is the observer's sub-threshold error budget:
+kernel smoothing perturbs $f$ pointwise in the fiber norm by at most
+$\Eps$.
+\end{definition}
+
+\begin{definition}[$\Obs$-Closed Loop]
+\label{def:oclosed}
+A piecewise-smooth path $\gamma: [a, b] \to |\Kt|$ is
+\emph{$\Obs$-closed} if $\|\gamma(a) - \gamma(b)\|_{\gO} \leq \sO$.
+Equivalently, $\gamma(a)$ and $\gamma(b)$ project to the same
+equivalence class under the $\sO$-quotient of $|\Kt|$: the
+endpoints are indistinguishable at the observer's resolution.
+\end{definition}
+
+\begin{remark}[$\Obs$-closed vs.\ classically closed]
+\label{rem:oclosed-vs-classical}
+A classically closed loop ($\gamma(a) = \gamma(b)$) is $\Obs$-closed,
+but not conversely. Exact closure is an unbounded idealization;
+$\Obs$-closure is the natural form for a bounded observer.
+\end{remark}
+
+\section*{3. Observer-Relative Stokes (Companion Theorem)}
+
+The theorem below is a second, independent result on the same
+observer-relative symbolic bundle. It is \emph{not} used in the proof
+of Theorem~\ref{thm:fftc1}: the FFTC is a pointwise along-$\gamma$
+statement, while the result below is loop-integrated. The two
+theorems share the connection $\nablaO$ but extract different scalars
+from it. The Stokes theorem is the load-bearing result for the main
+paper's \emph{loop-level} integrability arguments.
+
+\begin{remark}[Bundle triviality over $\Sigma$]
+\label{rem:triv}
+In the Stokes proof below, $\Sigma$ is a simply connected 2-manifold
+with nonempty boundary. Such a surface deformation retracts to its
+1-skeleton under a handle decomposition, and the 1-skeleton is a
+simply connected graph, i.e., a tree, hence contractible. Therefore
+$\Sigma$ is contractible, and every smooth vector bundle over
+$\Sigma$ is trivial. We may choose a global smooth trivialization of
+$\EE|_\Sigma$, and the componentwise Stokes step below is justified
+without further obstruction.
+\end{remark}
+
+\begin{theorem}[Observer-Relative Stokes with Bulk and Boundary Residues]
+\label{thm:ostokes}
+Let $\Sigma \subset |\Kt|$ be a simply connected surface whose
+boundary $\partial\Sigma$ is an $\Obs$-closed loop. Fix a global
+smooth trivialization of $\EE|_\Sigma$ (exists by
+Rmk.~\ref{rem:triv}). For any section $f \in \Sect(\EE)$,
+\begin{equation}
+\oint_{\partial\Sigma}^{\Obs} \DO f
+\;=\; \iint_\Sigma \kappaO \cdot f
+\;+\; \IntO(f, \Sigma)
+\;+\; \HolO(\partial\Sigma, f),
+\label{eq:ostokes}
+\end{equation}
+where $\kappaO \cdot f$ denotes the fiberwise action of the
+curvature 2-form on the section $f$, the \emph{bulk interaction
+residue}
+\begin{equation}
+\IntO(f, \Sigma) \;:=\; -\iint_\Sigma \AO \wedge \DO f
+\label{eq:intres}
+\end{equation}
+is the coupling of the connection to its own covariant variation,
+and $\HolO$ is a \emph{boundary holonomy term} defined in step~(a)
+of the proof. Both residues are $\Obs$-bounded:
+\begin{align}
+\|\HolO(\partial\Sigma, f)\|_{\hO} &\;\leq\; \sO \cdot
+\big(\, L_f \;+\; \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|f\|_{\Sigma, \infty}\, \big),
+\label{eq:holbound}\\
+\|\IntO(f, \Sigma)\|_{\hO} &\;\leq\;
+\mathrm{Area}(\Sigma) \cdot \|\AO\|_{\gO \otimes \hO, \infty} \cdot
+\big(\, L_f \;+\; \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|f\|_{\Sigma, \infty}\, \big),
+\label{eq:intbound}
+\end{align}
+with $L_f$ the piecewise-Lipschitz constant of $f$ at scale $\sO$
+under (H3). Both residues vanish in the trivial-connection limit
+$\AO \equiv 0$; $\HolO$ additionally vanishes in the closing-arc
+limit $\sO \to 0$, and $\IntO$ vanishes whenever
+$\|\AO\|_{\gO \otimes \hO, \infty} \to 0$.
+\end{theorem}
+
+\begin{proof}
+(a)~\emph{Reduction.} Let $p := \gamma(a)$ and $q := \gamma(b)$ be
+the endpoints of $\partial\Sigma = \gamma$. By
+Def.~\ref{def:oclosed}, $\|p - q\|_{\gO} \leq \sO$. Pick a smooth
+path $\eta: [0, 1] \to |\Kt|$ from $q$ to $p$ with arc-length
+$\leq \sO$ (exists by geodesic connectivity inside the $\sO$-ball
+around $p$, using $\sO < \mathrm{inj}(M, g)$). The augmented loop
+$\tilde\gamma := \gamma \star \eta$ is classically closed. Applying
+classical Stokes to $\DO f$ treated componentwise as an ordinary
+bundle-valued 1-form in the trivialization of Rmk.~\ref{rem:triv}
+yields the corrected covariant identity,\footnote{%
+Since $\DO = d + \AO$ acts on sections in a local frame, classical
+Stokes applied to the ordinary 1-form $\DO f = df + \AO f$ gives
+$\oint_{\tilde\gamma} \DO f = \iint_\Sigma d(df + \AO f)
+= \iint_\Sigma (dA_\Obs \wedge f - \AO \wedge df)
+= \iint_\Sigma (dA_\Obs + \AO \wedge \AO) \cdot f - \iint_\Sigma \AO \wedge \DO f
+= \iint_\Sigma \kappaO \cdot f - \iint_\Sigma \AO \wedge \DO f$,
+using $d(df) = 0$ and $df = \DO f - \AO f$ (hence
+$-\AO \wedge df = -\AO \wedge \DO f + \AO \wedge \AO \cdot f$) and
+the curvature identity $\kappaO = d\AO + \AO \wedge \AO$. The extra
+surface term is the interaction residue $\IntO$; the naive reading
+$\oint \DO f = \iint (\DO)^2 f$ is \emph{invalid} because $\DO$ is a
+covariant, not exterior, derivative, so Stokes does not apply to it
+directly. For the covariant exterior derivative and the curvature
+identity $(d^\nabla)^2 = F^\nabla$, see Kobayashi and Nomizu,
+\emph{Foundations of Differential Geometry, Vol.~II}, Ch.~III; for
+classical Stokes applied componentwise in a trivialization, Bott and
+Tu, \emph{Differential Forms in Algebraic Topology}, Ch.~I. These
+textbook references are self-contained and do not invoke the
+companion manuscript.}
+\begin{equation}
+\oint_{\tilde\gamma} \DO f
+\;=\; \iint_\Sigma \kappaO \cdot f
+\;+\; \IntO(f, \Sigma).
+\label{eq:classical-stokes}
+\end{equation}
+By additivity over concatenation,
+$\oint_{\tilde\gamma} \DO f = \oint_\gamma \DO f + \int_\eta \DO f$.
+Define $\HolO(\partial\Sigma, f) := -\int_\eta \DO f$;
+rearranging gives Eq.~\eqref{eq:ostokes}.
+
+\smallskip
+(b)~\emph{Bound on $\HolO$.} Expanding
+$\DO f = df + \AO \cdot f$ and integrating along $\eta$:
+\[
+\int_\eta \DO f \;=\; \int_\eta df \;+\; \int_\eta \AO \cdot f.
+\]
+The $df$-term telescopes: $\int_\eta df = f(p) - f(q)$, which under
+(H3) (piecewise Lipschitz at scale $\sO$) is bounded in fiber norm
+by $L_f \cdot \|p - q\|_{\gO} \leq L_f \cdot \sO$.\footnote{%
+We do not derive Lipschitz-at-scale-$\sO$ from $\Obs$-regularity.
+The two hypotheses are independent: $\Obs$-regularity controls
+$\|\KO * f - f\|$ (a pointwise kernel-smoothing error), not
+$\|\nabla f\|$ (a pointwise differentiability modulus). (H3) is
+posted separately; its compatibility with pipeline-emitted fields is
+discussed in Rmk.~\ref{rem:pipelineH3}, not within the hypothesis
+itself.}
+The $\AO$-term is bounded by the arc-length of $\eta$ ($\leq \sO$)
+times the sup-norm of the integrand
+($\leq \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|f\|_{\Sigma, \infty}$).
+Combining yields Eq.~\eqref{eq:holbound}.
+
+\smallskip
+(c)~\emph{Bound on $\IntO$.} Pointwise in the global frame,
+$\|\AO \wedge \DO f\|_{\hO}
+\leq \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|\DO f\|_{\hO}
+\leq \|\AO\|_{\gO \otimes \hO, \infty} \cdot
+(\, L_f + \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|f\|_{\Sigma, \infty}\,)$,
+using $\DO f = df + \AO f$ and (H3). Integrating over $\Sigma$ yields
+Eq.~\eqref{eq:intbound}.
+\qed
+\end{proof}
+
+\begin{remark}[Dependence of $\HolO$ on the interpolation path $\eta$]
+\label{rem:holodep}
+$\HolO$ depends on the choice of interpolation path $\eta$ from $q$
+to $p$ (Def.~\ref{def:oclosed} controls the endpoint $\gO$-distance,
+not the path). The dependence is controlled \emph{directly}, without
+recursion: for any two admissible choices $\eta, \eta'$ (each with
+arc-length $\leq \sO$), additivity of line integrals gives
+\[
+\HolO(\partial\Sigma, f; \eta) - \HolO(\partial\Sigma, f; \eta')
+\;=\; -\int_\eta \DO f + \int_{\eta'} \DO f
+\;=\; \int_{\eta' \star \bar\eta} \DO f,
+\]
+and the concatenated loop $\eta' \star \bar\eta$ has arc-length
+$\leq 2\sO$. Applying the Step~(b) estimate to this loop,
+\[
+\|\HolO(\partial\Sigma, f; \eta) - \HolO(\partial\Sigma, f; \eta')\|_{\hO}
+\;\leq\; 2\sO \cdot \big(\, L_f + \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|f\|_{\Sigma, \infty}\,\big).
+\]
+Hence the norm bound~\eqref{eq:holbound} is stable across choices of
+$\eta$, up to the factor $2$; no recursion is needed.
+\end{remark}
+
+\section*{4. Main Theorem (FFTC Part 1, Curve-Local, Reduced)}
+
+\begin{theorem}[FFTC Part 1, curve-local bundle form]
+\label{thm:fftc1}
+Let $(\EE, \hO, \nablaO)$ be an observer-relative symbolic bundle
+over $|\Kt|$ with $\sO < \mathrm{inj}(M, g)$. Let $f \in \Sect(\EE)$
+be $\Obs$-regular (Def.~\ref{def:oreg}) and piecewise Lipschitz at
+scale $\sO$ (H3). Let $\gamma: [a, b] \to |\Kt|$ be piecewise
+smooth, regular ($\|\dot\gamma(s)\|_{\gO} > 0$ where smooth, so that
+$\dot\gamma \notin \ker \KO^{\mathrm{tan}}$) and injective on
+$[a, b]$, with unit $\gO$-tangent
+$T_\gamma(s) := \dot\gamma(s) / \|\dot\gamma(s)\|_{\gO}$. Fix a smooth
+local trivialization $\Phi$ of $\EE$ on a tubular neighborhood of
+$\gamma([a, b])$, and let $F_\gamma$ be the reduced
+observer-bounded integral of Def.~\ref{def:int} in $\Phi$. Then for
+each $s \in [a, b]$ at which $\gamma$ is smooth,
+\begin{equation}
+\big(\DO F_\gamma\big)\!(\gamma(s))\big[T_\gamma(s)\big]
+\;=\; f(\gamma(s)) \;+\; \eta_{\Obs}(\gamma(s)) \;+\; \AO(\gamma(s))\big[T_\gamma(s)\big]\cdot F_\gamma(s),
+\label{eq:fftc1}
+\end{equation}
+where $\eta_\Obs(x) := (\KO * f)(x) - f(x)$ is the kernel-smoothing
+residue, with $\|\eta_\Obs(x)\|_{\hO} \leq \Eps$ for all $x$
+(Def.~\ref{def:oreg}). The identity~\eqref{eq:fftc1} is asserted in
+the chosen trivialization $\Phi$; under frame changes it behaves as
+described in Step~5 of the proof and
+Rmk.~\ref{rem:gauge-F}. The norm bound on the residue
+(Cor.~\ref{cor:torsion}) is frame-independent up to $\Cframe$
+(Lem.~\ref{lem:framecomp}).
+\end{theorem}
+
+\begin{proof}
+We compute $(\DO F_\gamma)(\gamma(s))[T_\gamma(s)]$ in the fixed
+local trivialization $\Phi$ of Def.~\ref{def:int}, then invoke
+$\Obs$-regularity.
+
+\smallskip
+\noindent\textbf{Step 1} (derivative of the integral, in the frame).
+In $\Phi: \EE|_U \cong U \times \mathbb{C}^k$, write
+$F_\gamma(s) = F_\gamma^\alpha(s)\, e_\alpha(\gamma(s))$ and
+$(\KO * f)(x) = (\KO * f)^\alpha(x)\, e_\alpha(x)$. By
+Def.~\ref{def:int}, each component $F_\gamma^\alpha$ is an ordinary
+scalar integral; the classical fundamental theorem of calculus gives
+\[
+\frac{dF_\gamma^\alpha}{ds}\bigg|_s
+\;=\; (\KO * f)^\alpha(\gamma(s)) \cdot \|\dot\gamma(s)\|_{\gO},
+\qquad \alpha = 1, \ldots, k.
+\]
+
+\smallskip
+\noindent\textbf{Step 2} (expanding $\DO$ in the frame).
+Def.~\ref{def:cov} gives $\DO F_\gamma = dF_\gamma + \AO \cdot F_\gamma$.
+Contracting with the unit tangent $T_\gamma(s)$:
+\[
+(\DO F_\gamma)(\gamma(s))[T_\gamma(s)]
+\;=\; (dF_\gamma)(\gamma(s))[T_\gamma(s)] \;+\; \AO(\gamma(s))[T_\gamma(s)] \cdot F_\gamma(s).
+\]
+The first term, componentwise, is
+\[
+(dF_\gamma^\alpha)(\gamma(s))[T_\gamma(s)]
+\;=\; \frac{dF_\gamma^\alpha}{ds}\bigg|_s \cdot \frac{1}{\|\dot\gamma(s)\|_{\gO}}
+\;=\; (\KO * f)^\alpha(\gamma(s))
+\qquad \text{(by Step~1)}.
+\]
+Reassembling components:
+$(dF_\gamma)(\gamma(s))[T_\gamma(s)] = (\KO * f)(\gamma(s))$.
+
+\smallskip
+\noindent\textbf{Step 3} ($\Obs$-regularity closes the kernel error).
+By Def.~\ref{def:oreg},
+$(\KO * f)(\gamma(s)) = f(\gamma(s)) + \eta_\Obs(\gamma(s))$ with
+$\|\eta_\Obs\|_{\hO} \leq \Eps$. Substituting into Step~2 yields
+Eq.~\eqref{eq:fftc1}.
+
+\smallskip
+\noindent\textbf{Step 4} (bounds on the residue).
+The kernel-smoothing residue is bounded in fiber norm by $\Eps$
+(Def.~\ref{def:oreg}). For the connection-coupling term, by
+Eq.~\eqref{eq:AOnorm} and the operator-norm definition,
+$\|\AO(x)[T_\gamma(s)] \cdot F_\gamma(s)\|_{\hO}
+\leq \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|F_\gamma(s)\|_{\hO}$.
+We bound $\|F_\gamma(s)\|_{\hO}$ explicitly: by Def.~\ref{def:int}
+and the triangle inequality (componentwise in $\Phi$, then converted
+to the fiber norm $\hO$ via $\Cframe$ on the compact
+$\gamma([a, b])$, per Lem.~\ref{lem:framecomp}),
+\[
+\|F_\gamma(s)\|_{\hO}
+\;\leq\; \Cframe \int_a^s \|(\KO * f)(\gamma(u))\|_{\hO}\, \|\dot\gamma(u)\|_{\gO}\, du
+\;\leq\; \Cframe \cdot (\|f\|_\infty + \Eps) \cdot L(\gamma|_{[a, s]}),
+\]
+where $L(\gamma|_{[a, s]}) := \int_a^s \|\dot\gamma\|_{\gO}\, du$ is
+$\gO$-arc-length and
+$\|f\|_\infty := \sup_{x \in \gamma([a, b])} \|f(x)\|_{\hO}$
+is finite by continuity of $f$ on a compact image. Hence
+$\|F_\gamma\|_{\hO}$ is uniformly bounded on $[a, b]$, and the
+connection-coupling term is $\Obs$-bounded.
+
+\smallskip
+\noindent\textbf{Step 5} (compatibility under frame changes).
+Under a \emph{rigid} frame change $e_\alpha \to g^\beta_\alpha e_\beta$
+with $g \in GL(k, \mathbb{C})$ constant on $U$
+(equivalently $dg \equiv 0$), $g$ commutes with the scalar integrals
+of Def.~\ref{def:int}, so $F_\gamma \mapsto g F_\gamma$ pointwise;
+meanwhile $\AO \mapsto g \AO g^{-1}$ (the $g^{-1}dg$ inhomogeneous
+term vanishes), $\DO F_\gamma \mapsto g \DO F_\gamma$, and both sides
+of Eq.~\eqref{eq:fftc1} transform by $g$.
+
+Under a \emph{smooth position-dependent} frame change $g: U \to GL(k, \mathbb{C})$
+with $dg \not\equiv 0$ on $\gamma$, $F_\gamma$ does \emph{not}
+transform as $g \cdot F_\gamma$: Rmk.~\ref{rem:gauge-F} shows the
+new-frame integral $\tilde F_\gamma^\beta$ differs from
+$(g^{-1})^\beta_\alpha F_\gamma^\alpha$ by a path-ordering correction.
+However, Eq.~\eqref{eq:fftc1} still holds in the new frame, because
+Steps 1--4 apply in any chosen trivialization: re-running them in
+$\Psi$ (with transition $g$) produces the identity
+$(\tilde\DO \tilde F_\gamma)[T_\gamma] = f + \eta_\Obs + \tilde\AO[T_\gamma] \cdot \tilde F_\gamma$
+where $\tilde\AO = g^{-1}\AO g + g^{-1}dg$. The connection-coupling
+term $\AO[T_\gamma] \cdot F_\gamma$ is therefore not a gauge-invariant
+scalar but the frame-relative contribution that absorbs the
+path-ordering dependence; Cor.~\ref{cor:torsion} packages
+$\eta_\Obs$ and this term into $\resO$, whose norm bound is
+frame-independent up to $\Cframe$ by Lem.~\ref{lem:framecomp}.
+\qed
+\end{proof}
+
+\begin{corollary}[Observer-relative FFTC residue]
+\label{cor:torsion}
+Define the \emph{FFTC residue} along $\gamma$ (in the trivialization
+$\Phi$ of Thm.~\ref{thm:fftc1}) by
+\[
+\resO(f, \gamma)(s) \;:=\; \eta_\Obs(\gamma(s)) \;+\; \AO(\gamma(s))[T_\gamma(s)] \cdot F_\gamma(s).
+\]
+(Distinct from the curvature 2-form $\kappaO = d\AO + \AO \wedge \AO$;
+$\resO$ is a section along $\gamma$, $\kappaO$ is an
+$\End(\EE)$-valued 2-form on $|\Kt|$.) Then
+Eq.~\eqref{eq:fftc1} reads
+$(\DO F_\gamma)(\gamma(s))[T_\gamma(s)] = f(\gamma(s)) + \resO(f, \gamma)(s)$,
+and
+\[
+\|\resO(f, \gamma)(s)\|_{\hO}
+\;\leq\; \Eps \;+\; \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|F_\gamma(s)\|_{\hO}.
+\]
+The right-hand side is frame-independent up to $\Cframe^2$ by
+Lem.~\ref{lem:framecomp}. Moreover, $\resO(f, \gamma) \equiv 0$ for
+every $\Obs$-regular $f$ and every $\gamma$ in the classical limit
+$\sO \to 0$ (equivalently, $\KO \to \delta$ and $\AO \equiv 0$),
+recovering the classical FTC
+$(dF_\gamma/ds)/\|\dot\gamma\|_g = f(\gamma(s))$.
+\end{corollary}
+
+\begin{remark}[Scaling of the residue bound with curve length]
+\label{rem:residue-scale}
+The bound $\|\resO(s)\|_{\hO} \leq \Eps + \|\AO\|_\infty \cdot \|F_\gamma(s)\|_{\hO}$
+grows through the $\|F_\gamma\|_{\hO}$ factor, which by Step~4 is
+$O(L(\gamma|_{[a,s]}))$. The residue is therefore ``$\Obs$-small'' in
+the regime $\Eps \ll 1$ and
+$\|\AO\|_\infty \cdot \Cframe \cdot (\|f\|_\infty + \Eps) \cdot L(\gamma|_{[a,s]}) \ll 1$;
+i.e., for short or moderately-long curves relative to the inverse
+connection norm. The Hypothesis Surface pipeline (main paper, \S5)
+operates in this regime by construction: per-stage displacement
+budgets are bounded and anti-masking keeps $\Eps$ small.
+\end{remark}
+
+\begin{remark}[Relation to Observer-Relative Stokes]
+\label{rem:stokes-relation}
+Theorem~\ref{thm:fftc1} and Thm.~\ref{thm:ostokes} share the
+connection $\nablaO$ but extract different scalars from
+$\kappaO = d\AO + \AO \wedge \AO$. The FFTC is a \emph{pointwise
+along-$\gamma$} statement: $\DO$ applied to $F_\gamma$ and contracted
+with $T_\gamma(s)$. The Stokes theorem is a \emph{loop-integrated}
+statement: $\DO f$ integrated around an $\Obs$-closed boundary
+equals the curvature flux plus an interaction residue plus a
+boundary holonomy. We do \emph{not} identify the pointwise
+connection term $\AO(\gamma(s))[T_\gamma(s)] F_\gamma(s)$ with the
+surface integral $\iint_\Sigma \kappaO \cdot f$; such an
+identification would require a homotopy hypothesis we do not post.
+The Stokes theorem is used for the main paper's loop-level
+integrability arguments, not for Thm.~\ref{thm:fftc1}.
+\end{remark}
+
+\section*{5. Integrability Corollary and Scope}
+
+\begin{corollary}[$\mask = 0$ bounds the FFTC residue]
+\label{cor:mask}
+The anti-masking rate $\mask$ (Invariant~2 of the main text) tracks
+the fraction of hypotheses emitted without bounded-resolution fibers.
+``Bare'' hypotheses correspond to kernel responses with effectively
+unbounded support, which inflate $\AO \wedge \AO$ in
+Def.~\ref{def:bundle} and also break $\Obs$-regularity
+(Def.~\ref{def:oreg}). Enforcing $\mask = 0$ restores both bounds:
+$\|\AO\|_{\gO \otimes \hO, \infty} < \infty$ and
+$\|\eta_\Obs\|_{\hO} \leq \Eps$, which by Cor.~\ref{cor:torsion}
+yields
+\[
+\|\resO(f, \gamma)(s)\|_{\hO}
+\;\leq\; \Eps \;+\; \|\AO\|_{\gO \otimes \hO, \infty} \cdot \|F_\gamma(s)\|_{\hO}
+\]
+throughout $[a, b]$. The empirical section of the main paper
+verifies $\mask \approx 0$ across five domains.
+\end{corollary}
+
+\begin{remark}[Scope of the $\mask \to \resO$ bridge]
+\label{rem:mask-bridge}
+The mapping from the text-level diagnostic $\mask$ to bundle-level
+bounds in Cor.~\ref{cor:mask} is \emph{declarative}, not
+quantitative: we assert that $\mask = 0$ restores the hypotheses
+under which Thm.~\ref{thm:fftc1} and Cor.~\ref{cor:torsion} hold, not
+that there is an explicit function $g$ with
+$\|\resO\| \leq g(\mask)$. Constructing such a $g$ (for example,
+via a concrete embedding of the pipeline's claim/fiber emission
+into $(\EE, \hO, \nablaO)$) is deferred as adjacent work and is
+flagged as a limitation of the main paper. A rigorous quantitative
+construction for one such embedding (flat $\mathbb{R}^n$ base, trivial
+rank-$N$ bundle, Gaussian-bump fibers with the natural
+$a_i$-weighted connection) is carried out in the companion
+supplement \emph{Anti-Masking Bridge: A Quantitative $g(\mask)$ for
+One Embedding}, yielding
+$\|\resO\| \leq G_0 + G_1 \mask + G_2 \mask^2$ with coefficients
+explicit in $(N, s_\Obs, R_{\min}, \varepsilon_{\mathrm{bare}},
+C_{\mathrm{frame}}, L)$.
+\end{remark}
+
+\begin{remark}[Pipeline-emission of (H3)]
+\label{rem:pipelineH3}
+Hypothesis (H3) (piecewise Lipschitz at scale $\sO$) is independent
+of $\Obs$-regularity (H2) and is posted separately in
+Rmk.~\ref{rem:scope}. In the Hypothesis Surface pipeline of the main
+paper, emission of $f$ bounds $\|\nabla \sigma_i\|$ per fiber at the
+emission stage, which implies (H3) with
+$L_f \leq \max_i \|\nabla \sigma_i\|_\infty$. This is an instantiation
+claim about one implementation, not a theorem about the proof's
+hypothesis list; readers using a different pipeline should verify
+(H3) directly.
+\end{remark}
+
+\begin{remark}[Scope and standing hypotheses]
+\label{rem:scope}
+This document proves Part~1 only, in its reduced form:
+Eq.~\eqref{eq:fftc1} for the kernel-only line integral of
+Def.~\ref{def:int}, and the Stokes identity Eq.~\eqref{eq:ostokes}
+for simply connected $\Sigma$ with $\Obs$-closed boundary. Standing
+hypotheses:
+\begin{enumerate}[label=(H\arabic*)]
+\item $\AO$ is $\Obs$-bounded: $\|\AO\|_{\gO \otimes \hO, \infty} < \infty$.
+\item $f \in \Sect(\EE)$ is $\Obs$-regular (Def.~\ref{def:oreg}).
+\item $f$ is \emph{piecewise Lipschitz at scale $\sO$}: there
+exists $L_f < \infty$ such that
+$\|f(y) - f(z)\|_{\hO} \leq L_f \cdot \|y - z\|_{\gO}$ whenever
+$\|y - z\|_{\gO} \leq \sO$ and $y, z$ lie on a common smooth
+segment of $f$. Independent of (H2).
+\item Kernel-scale hypothesis: $\sO < \mathrm{inj}(M, g)$.
+\item (Local to Thm.~\ref{thm:ostokes} only:) the surface $\Sigma$
+is simply connected with non-empty boundary, and $\partial\Sigma$ is
+$\Obs$-closed (Def.~\ref{def:oclosed}). Not posted globally.
+\end{enumerate}
+\emph{Deferred.} Part~2 (integral of a derivative yields a boundary
+term plus a symbolic holonomy $\HolO$ in a dual sense) and the full
+symbolic-integration operator with the memory\slash distortion term
+$E_{\mathrm{acc}}$ (Rmk.~\ref{rem:reduced}). The reduced Part~1
+proved here is the load-bearing result for the Hypothesis Surface
+paper's claim that bounded observation leaves an irreducible residue
+$\resO$, and that integration under $\mask = 0$ converges with
+bounded residue norm.
+\end{remark}
+
+\end{document}

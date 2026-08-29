@@ -1,0 +1,950 @@
+% Companion Manuscript for Figure 3 of the Hypothesis Surface paper.
+%
+% Merged content from three working documents:
+%   - obs_bound_scaling_proposition.tex (universal exponent theorem)
+%   - bicomplex_carrier_v1.tex (minimal curved bicomplex setup only)
+%   - test_time_cohomology.tex (observer-bounded cohomology reframe)
+%
+% Numbering is designed so the main text's patch references land
+% correctly:
+%   - "companion MS, Thm. 1" = Universal Critical-Exponent Theorem (§2)
+%   - "companion MS, Def. 5" = Observer-Bounded Cohomology (§7)
+%
+% The bicomplex content is included only to the minimal extent needed
+% to define observer-bounded cohomology as the associated graded of
+% an Omega_O-filtered curved bicomplex. The full bicomplex construction
+% with cacophony/FRW cocycle placement is Principia Book IX material
+% (post-deadline).
+%
+% Proofs of Thm 2 and Thm 3 are abbreviated relative to the standalone
+% working documents; full derivations remain in the source files above.
+
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathtools}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+\newtheorem*{principle}{Principle}
+
+\newcommand{\Obs}{\mathcal{O}}
+\newcommand{\OmegaO}{\Omega_{\Obs}}
+\newcommand{\kappaO}{\kappa_{\Obs}}
+\newcommand{\AO}{A_{\Obs}}
+\newcommand{\nablaO}{\nabla_{\Obs}}
+\newcommand{\hO}{h_{\Obs}}
+\newcommand{\gO}{g_{\Obs}}
+\newcommand{\DO}{D_{\Obs}}
+\newcommand{\rmin}{s_{\Obs}}
+\newcommand{\EE}{E}
+\newcommand{\Kt}{\mathcal{K}_t}
+\newcommand{\End}{\mathrm{End}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\Comp}{\mathbb{C}}
+\newcommand{\HO}{H_\Obs}
+\newcommand{\ObsSys}{\mathsf{ObsSys}}
+\newcommand{\Frob}{\mathsf{FRW}}
+\newcommand{\Cacph}{\mathsf{Cac}}
+\newcommand{\Sym}{\mathrm{Sym}}
+
+\title{Companion Manuscript, Figure~3: \\
+Observer-Bounded Access, the Universal Critical-Exponent
+Theorem, and Observer-Bounded Cohomology\\[0.4em]
+\large Proofs supporting Figure~3 and the Empirical Concurrence
+paragraph of the Hypothesis Surface manuscript (\S7,
+\texttt{main.tex}).}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\noindent This companion manuscript provides the rigorous
+statements and proofs supporting Figure~3 of the Hypothesis
+Surface paper. The core result is the
+\emph{Universal Critical-Exponent Theorem} (\S\ref{sec:universal},
+Thm.~\ref{thm:universal}): the cacophony cliff's
+$\delta_{\min} \sim \varepsilon^{-1/2}$ scaling and the FRW past
+light cone's $+1/2, +2/3$ scaling are \emph{instances of the same
+theorem}, recovered by evaluating a single functor
+$\OmegaO:\ObsSys \to C^\infty(I)$ on the cacophony bilinear form
+and the FRW spatial metric respectively. The matter-era $-2/3$
+is a prediction, not a regime-distinct curiosity.
+The second half of the manuscript reframes the obstruction to
+strict cohomological unification as \emph{content}: the
+Chern--Weil class that prevents one-shot decurving is
+structurally the same object that expresses the observer bound,
+so under observer-bounded cohomology
+(\S\ref{sec:cohom}, Def.~\ref{def:ocoh}) the obstruction becomes
+the natural carrier of the shared invariant rather than an
+impediment to it. Preliminary definitions depend on the
+bundle-valued formalism of the companion manuscript
+\texttt{fig2\_companion\_fftc.tex}.
+\end{abstract}
+
+\section*{0. Scope, method, and honest framing}
+\label{sec:scope}
+\phantomsection\addcontentsline{toc}{section}{0. Scope, method, and honest framing}
+
+\noindent\textbf{What this document is.}
+A rigorous unification of two empirical $\sqrt{\cdot}$-scalings
+under a single observer-bounded access functor, together with
+the cohomological framework in which the resulting obstruction is
+content rather than failure. Both halves support
+Figure~3 of the Hypothesis Surface paper.
+
+\noindent\textbf{What this document is not.}
+A claim that the cacophony cliff and the FRW cosmology are
+``the same phenomenon.'' They are formally distinct
+observer-bounded systems that happen to be instances of the same
+functorial construction, with explicitly different parameter
+content. Uniqueness of the underlying mechanism is not asserted.
+
+\noindent\textbf{Assumptions made explicit.}
+(i) Cacophony uses the one-parameter family of Gram matrices
+$\Gamma(\rho) = (1 - \rho) I + \rho J$ of~\cite{tiffany2026cacophony}.
+(ii) FRW is perfect-fluid, flat spatial slice, $\Lambda$CDM-calibrated
+by Planck~2018. (iii) Observer bounds are encoded by a
+resolution-floor $\rmin > 0$ and an anti-masking rate $\mu$
+controlling spectral faithfulness
+(\texttt{main.tex}, Def.~Inv~2).
+
+\noindent\textbf{What would falsify the unification.}
+(a) An equation-of-state $w$ at which the universal exponent
+$-2/(3(1+w))$ fails empirically, given Planck-calibrated ambient
+geometry. (b) A cacophony-type bilinear form whose degenerating
+exponent is not $p = 1$, or a rank-one structure whose critical
+scaling is not $-1/2$. Both are measurable.
+
+\section{Category of observer-bounded systems}
+\label{sec:obsys}
+
+\begin{definition}[Observer-bounded system]
+\label{def:obsys}
+An \emph{observer-bounded system} is a tuple
+$(V, \langle\cdot,\cdot\rangle, I, B, W)$, where:
+\begin{enumerate}[label=(\alph*),leftmargin=*,itemsep=2pt]
+\item $V$ is a finite-dimensional real inner product space with
+inner product $\langle\cdot,\cdot\rangle$.
+\item $I \subset \Real$ is an interval (the \emph{control
+parameter}), and $B: I \to \Sym^+(V)$ is a continuously
+varying symmetric positive-semidefinite bilinear form on $V$
+(the \emph{capacity form}).
+\item $W \subseteq V$ is a nonzero linear subspace (the
+\emph{observer-accessible subspace}).
+\end{enumerate}
+Morphisms $(V, \langle,\rangle, I, B, W) \to
+(V', \langle,\rangle', I', B', W')$ are pairs $(\phi, \psi)$ where
+$\phi: V \to V'$ is a linear isometry with $\phi(W) \subseteq W'$
+and $\psi: I \to I'$ is a continuous map such that
+$\phi^* B'_{\psi(\lambda)} = B_\lambda$ on $W$. Composition is
+by pairwise composition. Let $\ObsSys$ denote the resulting
+category.
+\end{definition}
+
+\begin{definition}[Observer-bounded access functor]
+\label{def:accessor}
+The \emph{observer-bounded access functor} is
+\[
+\OmegaO: \ObsSys \to C^\infty(I; \Real_{\geq 0}),
+\qquad
+\OmegaO(V, \langle,\rangle, I, B, W)(\lambda) \;:=\;
+\inf_{\substack{w \in W \\ \|w\| = 1}}
+\langle w, B_\lambda w \rangle,
+\]
+i.e., the smallest Rayleigh quotient of $B_\lambda$ restricted
+to the observer-accessible subspace $W$. $\OmegaO$ sends
+morphisms by pullback: $\OmegaO(\phi, \psi)(f)(\lambda) :=
+f(\psi(\lambda))$.
+\end{definition}
+
+\begin{lemma}[Rayleigh dual]
+\label{lem:rayleigh}
+$\OmegaO$ is well-defined, functorial, and satisfies the
+\emph{Rayleigh dual}: the observer-bounded access cost
+$\kappaO^{\mathrm{access}}(\lambda) :=
+\sup_{w \in W, \|w\|=1} \langle w, B_\lambda w\rangle^{-1/2}$
+satisfies
+\[
+\kappaO^{\mathrm{access}}(\lambda) \;=\; \OmegaO(\cdot)(\lambda)^{-1/2}.
+\]
+Access cost diverges exactly when capacity vanishes.
+\end{lemma}
+
+\begin{proof}
+The infimum exists because $B_\lambda$ is continuous and the unit
+sphere in $W$ is compact. Functoriality is immediate from the
+definition of morphisms. The Rayleigh dual is the minimax
+identity: for symmetric positive semidefinite $B_\lambda$ and
+$w \in W$, $\langle w, B_\lambda w\rangle^{-1/2}$ is minimized
+over unit $w$ precisely where $\langle w, B_\lambda w\rangle$ is
+maximized, and \emph{diverges} precisely where
+$\langle w, B_\lambda w\rangle$ attains zero, which is the
+infimum definition of $\OmegaO$.
+\end{proof}
+
+\section{Universal critical-exponent theorem}
+\label{sec:universal}
+
+\begin{theorem}[Universal Critical-Exponent]
+\label{thm:universal}
+Let $\mathcal{S} = (V, \langle,\rangle, I, B, W)$ be an
+observer-bounded system, and suppose there exists
+$\lambda^* \in \overline{I}$ such that
+$\OmegaO(\mathcal{S})(\lambda) \to 0$ as $\lambda \to \lambda^*$
+with
+\[
+\OmegaO(\mathcal{S})(\lambda) \;=\; c\,|\lambda - \lambda^*|^p \;+\;
+o\!\left(|\lambda - \lambda^*|^p\right),
+\qquad c > 0,\; p > 0.
+\]
+Then the access cost $\kappaO^{\mathrm{access}}(\lambda)$ diverges
+at $\lambda^*$ with the \emph{universal exponent} $-p/2$:
+\[
+\kappaO^{\mathrm{access}}(\lambda) \;=\; c^{-1/2}\,
+|\lambda - \lambda^*|^{-p/2} \;+\;
+o\!\left(|\lambda - \lambda^*|^{-p/2}\right).
+\]
+In particular, the critical exponent depends only on the
+vanishing order $p$ of $\OmegaO$, not on the ambient geometry or
+the particular form of $B_\lambda$.
+\end{theorem}
+
+\begin{proof}
+Immediate from Lemma~\ref{lem:rayleigh}: if
+$\OmegaO(\mathcal{S})(\lambda) = c\,|\lambda - \lambda^*|^p (1 + o(1))$
+then
+$\OmegaO(\mathcal{S})(\lambda)^{-1/2} =
+c^{-1/2} |\lambda - \lambda^*|^{-p/2}(1 + o(1))^{-1/2}$,
+and the right-hand side has the same leading-order exponent
+$-p/2$ because $(1 + o(1))^{-1/2} = 1 + o(1)$.
+\end{proof}
+
+\begin{remark}[The $1/2$]
+The universal exponent is $-p/2$ rather than $-p$ or $-1/p$
+because \emph{access cost is the square root of inverse
+capacity}. This is a consequence of the Rayleigh dual and is
+independent of any physical interpretation. The $1/2$ appears
+wherever capacity enters quadratically into an access-resistance
+functional.
+\end{remark}
+
+\begin{corollary}[Linear vanishing gives exponent $-1/2$]
+\label{cor:linear}
+If $\OmegaO$ vanishes linearly ($p = 1$) at $\lambda^*$, then
+$\kappaO^{\mathrm{access}}(\lambda) \sim |\lambda - \lambda^*|^{-1/2}$.
+\end{corollary}
+
+\begin{corollary}[Monomial vanishing]
+\label{cor:monomial}
+If $B_\lambda$ has a simple zero eigenvalue along a one-dimensional
+direction in $W$ at $\lambda^*$ with eigenvalue vanishing as
+$|\lambda - \lambda^*|^q$, then $\OmegaO \sim |\lambda - \lambda^*|^q$
+(so $p = q$) and the exponent is $-q/2$.
+\end{corollary}
+
+\section{Cacophony as instance ($p = 1$)}
+\label{sec:cacophony}
+
+\begin{proposition}[Cacophony as observer-bounded system]
+\label{prop:cac}
+The multi-constraint LLM alignment problem of~\cite{tiffany2026cacophony}
+is an observer-bounded system $\Cacph(k)$ as follows:
+\begin{enumerate}[label=(\roman*),leftmargin=*,itemsep=2pt]
+\item $V = \Real^k$ with the Euclidean inner product;
+\item $I = [0, 1/(k-1))$ and the control parameter is $\rho \in I$;
+\item $B_\rho = (1+\rho) I_k - \rho J_k$ (equivalently,
+$I_k - \rho(J_k - I_k)$), where $J_k$ is the all-ones matrix;
+this is the rank-one perturbation whose smallest eigenvalue
+governs the cacophony feasibility cliff of~\cite{tiffany2026cacophony};
+\item $W = V = \Real^k$ (all coordinates are observer-accessible).
+\end{enumerate}
+Then $\OmegaO(\Cacph(k))(\rho) = 1 - \rho(k-1)$, which vanishes
+linearly ($p = 1$) at $\rho^* = 1/(k-1)$.
+\end{proposition}
+
+\begin{proof}
+$B_\rho$ has eigenvalue $1 - \rho(k-1)$ on the all-ones vector
+(since $(1+\rho)\mathbf{1} - \rho J_k \mathbf{1} = (1+\rho-\rho k)
+\mathbf{1} = (1-\rho(k-1))\mathbf{1}$), and eigenvalue $1+\rho$
+on its orthogonal complement (multiplicity $k-1$, since
+$J_k v = 0$ for $v \perp \mathbf{1}$). For $\rho \in [0, 1/(k-1))$,
+the smallest eigenvalue over $W = V$ is $1 - \rho(k-1)$, attained
+on the all-ones direction, vanishing linearly at
+$\rho^* = 1/(k-1)^-$. Thus $\OmegaO(\Cacph(k))(\rho) = 1 - \rho(k-1)$
+and $p = 1$.
+\end{proof}
+
+\begin{corollary}[Cacophony cliff]
+\label{cor:cliff}
+$\kappaO^{\mathrm{access}}(\Cacph(k), \rho)
+\sim (1/(k-1) - \rho)^{-1/2}$ as $\rho \to 1/(k-1)^-$. This is
+the cacophony cliff.
+\end{corollary}
+
+\begin{proof}
+Theorem~\ref{thm:universal} with $p = 1$.
+\end{proof}
+
+\section{FRW cosmology as instance ($p = 4/(3(1+w))$)}
+\label{sec:frw}
+
+\begin{proposition}[FRW perfect-fluid cosmology as observer-bounded system]
+\label{prop:frw}
+The past light cone of an observer in a flat FRW cosmology with
+perfect-fluid equation of state $w$ (so $p(t)/\rho(t) = w$,
+constant) is an observer-bounded system $\Frob(w)$ as follows.
+Let $a(t)$ solve the Friedmann equations with initial condition
+$a(t_0) = 1$; the scale factor satisfies
+$a(t) \propto t^{2/(3(1+w))}$ for $w \neq -1$.
+\begin{enumerate}[label=(\roman*),leftmargin=*,itemsep=2pt]
+\item $V = T_x M^{(3)}$, the tangent space of the observer's
+spatial slice at its worldline;
+\item $I = (0, t_0]$ (cosmic time, $t_0$ = present);
+\item $B_t = a(t)^2 \gamma$, where $\gamma$ is the flat spatial
+metric on the slice;
+\item $W = V$, the observer's spatial tangent space. (The
+past-directed tangent cone at the observer spans $V$; since
+$B_t$ is homothetic, the Rayleigh quotient is constant over
+directions, so replacing the cone by its linear span $V$ leaves
+$\OmegaO$ unchanged while satisfying the linear-subspace
+requirement of Def.~\ref{def:obsys}(c).)
+\end{enumerate}
+Then
+\[
+\OmegaO(\Frob(w))(t) \;=\; a(t)^2 \;\propto\; t^{4/(3(1+w))},
+\]
+which vanishes at $t^* = 0$ (the Big Bang) with vanishing order
+$p = 4/(3(1+w))$.
+\end{proposition}
+
+\begin{proof}
+The Rayleigh quotient of $B_t = a(t)^2 \gamma$ over unit vectors
+in $W$ (with $\|\cdot\|$ the inner-product norm on $V$,
+normalized by $\gamma$ so that $a(t_0)^2 = 1$) is constant over
+directions because the metric is homothetic with conformal factor
+$a(t)^2$: $\langle w, B_t w\rangle = a(t)^2 \gamma(w, w) = a(t)^2
+\|w\|^2 = a(t)^2$. Thus $\OmegaO(\Frob(w))(t) = a(t)^2$. For a
+flat perfect-fluid FRW universe, $a(t) \propto t^{2/(3(1+w))}$,
+so $a(t)^2 \propto t^{4/(3(1+w))}$, vanishing at $t^* = 0$ with
+order $p = 4/(3(1+w))$.
+\end{proof}
+
+\begin{corollary}[Radiation-era instance]
+\label{cor:rad}
+At $w = 1/3$ (radiation), $p = 4/(3(1 + 1/3)) = 1$. So
+$\kappaO^{\mathrm{access}}(\Frob(1/3), t) \sim t^{-1/2}$ and the
+access-cost exponent is $-1/2$.
+\end{corollary}
+
+\begin{corollary}[Matter-era instance]
+\label{cor:mat}
+At $w = 0$ (matter), $p = 4/3$. So
+$\kappaO^{\mathrm{access}}(\Frob(0), t) \sim t^{-2/3}$ and the
+access-cost exponent is $-2/3$.
+\end{corollary}
+
+\begin{corollary}[General perfect-fluid equation-of-state scaling]
+\label{cor:genw}
+For arbitrary $w \neq -1$, the universal exponent evaluates to
+$-p/2 = -2/(3(1+w))$. In particular, this recovers the
+radiation $-1/2$, matter $-2/3$, and extrapolates smoothly to
+stiff fluids ($w \to 1$: exponent $\to -1/3$) and cosmological
+constant ($w \to -1$: exponent $\to -\infty$; the expansion is
+non-power-law and the asymptotic form changes, so the
+theorem doesn't apply to $w = -1$ without reformulation).
+\end{corollary}
+
+\begin{remark}[Matter-era $2/3$ as prediction]
+\label{rem:matter-prediction}
+The figure caption in \texttt{main.tex} previously framed the
+matter-era $2/3$ as ``regime-distinct'' from the cacophony
+cliff's $1/2$. Under Theorem~\ref{thm:universal},
+both exponents are instances of the same functor with different
+vanishing orders $p$. The matter-era $2/3$ is a
+\emph{prediction} of the universal theorem given $w = 0$, not a
+separate regime. The framework gains predictive content across
+the full equation-of-state range.
+\end{remark}
+
+\section{Minimal curved bicomplex on the observer-relative bundle}
+\label{sec:bicomplex}
+
+To state the observer-bounded cohomology in which the cacophony
+and FRW instances share a cohomology class, we need the
+curved bicomplex on the observer-relative symbolic bundle
+$(\EE, \hO, \nablaO)$ of the companion manuscript
+\texttt{fig2\_companion\_fftc.tex}. Only the minimal structure
+required for Def.~\ref{def:ocoh} is given here; the full
+bicomplex construction with cocycle placement for each instance
+is deferred to post-deadline work.
+
+\begin{definition}[Curved bicomplex on the observer-relative bundle]
+\label{def:bicomplex}
+Let $\mathcal{U} = \{U_\alpha\}$ be a good cover of the geometric
+realization $|\Kt|$, and let $(\EE, \hO, \nablaO)$ be the
+observer-relative symbolic bundle over $|\Kt|$ with connection
+$\nablaO$ and curvature $\kappaO$ (cf.\ \texttt{fig2\_companion\_fftc.tex},
+Def.~1). The \emph{curved bicomplex} is the bigraded space
+\[
+C^{p, q} \;:=\; \check{C}^p\bigl(\mathcal{U};\, \Omega^q(\cdot, \End(\EE))\bigr),
+\]
+where $\check{C}^p$ is the \v{C}ech $p$-cochain complex with
+values in the sheaf of $\End(\EE)$-valued $q$-forms. The two
+differentials are the \v{C}ech coboundary
+$d_1 = \delta: C^{p,q} \to C^{p+1, q}$ and the covariant
+exterior derivative $d_2 = \DO: C^{p,q} \to C^{p, q+1}$ induced
+by $\nablaO$. The total differential is
+$D := d_1 + (-1)^p\, d_2$.
+\end{definition}
+
+\begin{lemma}[Curvature of the total differential]
+\label{lem:curvature}
+$D^2 = [\kappaO, \cdot]$ as a map $C^{p,q} \to C^{p, q+2}$. The
+bicomplex is \emph{curved}: $D^2 \neq 0$ unless $\kappaO = 0$.
+\end{lemma}
+
+\begin{proof}
+$d_1^2 = 0$ (standard \v{C}ech), and
+$d_2^2 = [\kappaO, \cdot]$ is the curvature of $\nablaO$
+acting on $\End(\EE)$-valued forms
+(cf.\ \texttt{fig2\_companion\_fftc.tex},
+Prop.~curvature-of-nablaO). The cross terms vanish
+because $d_1$ acts by restriction and $d_2$ by covariant
+differentiation, which commute after sign adjustment; the $(-1)^p$
+factor in the definition of $D$ absorbs the sign. Hence
+$D^2 = d_1^2 + (-1)^{p+1} d_1 d_2 + (-1)^p d_2 d_1 + d_2^2 =
+[\kappaO, \cdot]$.
+\end{proof}
+
+\section{The $\OmegaO$-filtration}
+\label{sec:filtration}
+
+\begin{definition}[$\OmegaO$-filtration]
+\label{def:filtration}
+For the curved bicomplex $(C^{\bullet\bullet}, D)$ of
+Def.~\ref{def:bicomplex}, the \emph{$\OmegaO$-filtration} is
+the decreasing filtration
+\[
+F^k C^{p, q} \;:=\; \bigl\{\, \omega \in C^{p, q} :
+\|\omega(\cdot, \lambda)\|_{\hO} = O(\OmegaO(\lambda)^{k})
+\text{ as } \lambda \to \lambda^*\,\bigr\},
+\]
+where $\lambda$ is the control parameter of an ambient
+observer-bounded system and $\omega(\cdot, \lambda)$ denotes the
+$\lambda$-parameterized section of $C^{p,q}$. Elements of
+$F^k C^{p, q}$ have $\OmegaO$-filtration \emph{order at least}
+$k$ (more-vanishing elements have larger $k$).
+\end{definition}
+
+\begin{remark}[What the filtration tracks]
+$F^k C^{p, q}$ collects cochains whose norm vanishes at least as
+fast as $\OmegaO^k$ at the critical point. Since access cost
+$\kappaO^{\mathrm{access}}$ diverges as $\OmegaO^{-1/2}$,
+elements of $F^k C^{p, q}$ contribute to observables at order
+$\OmegaO^{k - 1/2}$ to the observer. Positive-$k$ pieces are
+observer-resolvable; negative-$k$ pieces fall below resolution.
+\end{remark}
+
+\section{Observer-bounded cohomology}
+\label{sec:cohom}
+
+\begin{definition}[Observer-bounded cohomology]
+\label{def:ocoh}
+The \emph{observer-bounded cohomology} of the $\OmegaO$-filtered
+curved bicomplex $(C^{\bullet\bullet}, D, F^\bullet)$ is
+\[
+\HO^{k, n} \;:=\; H^n\bigl(\mathrm{gr}^k C^{\bullet\bullet},\,
+\overline{D}\bigr),
+\]
+where $\mathrm{gr}^k = F^k / F^{k+1}$ is the associated graded,
+and $\overline{D}$ is the induced differential on the graded.
+Because $D^2 = [\kappaO, \cdot]$ (Lemma~\ref{lem:curvature})
+acts by lowering filtration order (curvature has a definite
+$\OmegaO$-order), it descends to zero on $\mathrm{gr}^\bullet$,
+and $\overline{D}^2 = 0$. The graded cohomology is therefore
+well-defined.
+\end{definition}
+
+\begin{principle}[Test-time truth]
+\label{princ:tt}
+For an observer-bounded framework, the natural cohomology is
+$\HO^{\bullet, \bullet}$, not the strict cohomology of
+$(C^{\bullet\bullet}, D)$. Strict cohomology requires resolving
+differences below the $\OmegaO$-filtration floor, operations
+the observer cannot perform. Observer-bounded cohomology
+captures \emph{exactly} the content the observer can access.
+\end{principle}
+
+\section{Test-time unification}
+\label{sec:unification}
+
+\begin{theorem}[Test-time unification]
+\label{thm:ttu}
+Under observer-bounded cohomology $\HO^{\bullet, \bullet}$:
+\begin{enumerate}[label=(\roman*),leftmargin=*,itemsep=2pt]
+\item The cacophony obstruction (Prop.~\ref{prop:cac}) admits a
+canonical representative $[c_{\Cacph}] \in \HO^{0, 1}$ at
+$\OmegaO$-filtration order $0$.
+\item The FRW curvature obstruction (Prop.~\ref{prop:frw})
+admits a canonical representative $[c_\Frob] \in \HO^{-1, 2}$ at
+$\OmegaO$-filtration order $-1$ (sub-resolution at each finite
+time, divergent at the critical point).
+\item Both classes are functorial images of the same
+observer-bounded access functor $\OmegaO$
+(Def.~\ref{def:accessor}): they share the same functorial source.
+The matter-era $2/3$ arises as the same theorem applied at
+$p = 4/3$ instead of $p = 1$; the exponents differ but the
+cohomological carrier is the same.
+\end{enumerate}
+Therefore the cacophony cliff and the FRW past light cone share
+a cohomology class in $\HO^{\bullet, \bullet}$ up to
+filtration-order shift, with the shift equal to $p$'s difference
+from $1$.
+\end{theorem}
+
+\begin{proof}[Sketch]
+Part (i): the cacophony conflict $c_{ij} = g_i \otimes g_j^* -
+g_j \otimes g_i^*$ (constraint pair asymmetry) lives in
+$C^{1, 0}$; its $\OmegaO$-filtration order is $0$ because the
+cacophony bilinear form vanishes linearly (so $B_\rho$ is
+$O(1)$). It is a $d_1$-cocycle (constraint asymmetries are
+locally consistent) and its class
+$[c_{\Cacph}] \in H^1(\mathrm{gr}^0 C^{\bullet, 0}, \delta)
+= \HO^{0, 1}$.
+Part (ii): the FRW curvature is
+$\kappaO \in \Omega^2(\cdot, \End(\EE))$; its
+$\OmegaO$-filtration order is $-1$ (divergent at $t^* = 0$),
+and it is the curvature element in $C^{0, 2}$, representing
+$[\kappaO] \in \HO^{-1, 2}$.
+Part (iii): both are in the image of the access functor
+$\OmegaO$ evaluated on their respective systems; the universal
+exponent theorem produces the filtration orders from the
+vanishing exponents $p$.
+\end{proof}
+
+\begin{principle}[ICML/operational band = test-time cohomology band]
+\label{princ:icml}
+The cohomology $\HO^{\bullet, \bullet}$ is precisely the cohomology
+visible to an observer with bounded resolution. Strict cohomology
+requires unbounded resolution (hence access below $\OmegaO$'s
+minimum), which is not available at inference time. The
+operational band of ICML-scale evaluation \emph{is} the test-time
+cohomology band.
+\end{principle}
+
+\section{The obstruction as the observer bound}
+\label{sec:obstruction}
+
+\begin{theorem}[Obstruction = observer bound]
+\label{thm:obs-is-bd}
+Let $(\EE, \hO, \nablaO)$ be an observer-induced symbolic bundle
+(Def.~\ref{def:obs-induced}, below). The following are equivalent:
+\begin{enumerate}[label=(\roman*),leftmargin=*,itemsep=2pt]
+\item Strict unification closes: there exists a global section
+$\alpha \in \Gamma(C^{1, 0} \oplus C^{0, 1})$ with
+$D\alpha + \tfrac{1}{2}[\alpha, \alpha] - \kappaO = 0$ in strict
+cohomology.
+\item The Chern--Weil class $[\kappaO] \in H^2_{dR}(|\Kt|;\,
+\End(\EE))$ vanishes.
+\item The $\OmegaO$-filtration is trivial: $F^k C^{p, q} = C^{p, q}$
+for all $k \in \mathbb{Z}$ (equivalently, $\kappaO \in \bigcap_k F^k C^{0,2}$).
+\item Observer resolution is unbounded: $\rmin = 0$.
+\end{enumerate}
+In particular, the Chern--Weil obstruction to strict decurving
+\emph{is} the observer bound, cohomologically expressed. For any
+observer-bounded symbolic bundle with nontrivial curvature, (iv)
+fails, so (i)-(iii) all fail, and the natural unification is the
+test-time unification of Thm.~\ref{thm:ttu}, not the strict one.
+\end{theorem}
+
+\subsection*{Preliminary lemmas}
+
+The proof proceeds via a scope assumption on the bundle and
+three preliminary results: a filtration-order fact about $\kappaO$
+(Lemma~\ref{lem:kappa-filtration}), an \emph{elimination lemma}
+showing that both decoupled solvability routes fail under
+$\rmin > 0$ (Lemma~\ref{lem:elimination}), and a Maurer--Cartan
+solvability statement at $\rmin = 0$
+(Lemma~\ref{lem:MC-solvability}).
+
+\begin{definition}[Observer-induced connection]
+\label{def:obs-induced}
+$\nablaO$ from \texttt{fig2\_companion\_fftc.tex} (Def.~1) is
+\emph{observer-induced} if its connection 1-form $\AO$ arises
+from the observer's kernel data: $\AO = \AO(\rmin)$ with $\AO \to 0$
+in the $\|\cdot\|_{\gO \otimes \hO, \infty}$ norm of
+\texttt{fig2\_companion\_fftc.tex} as $\rmin \to 0$. Equivalently,
+$\AO$ captures the non-commutation between kernel smoothing and
+flat parallel transport at scale $\rmin$; it vanishes in the
+Dirac-delta limit $\rmin \to 0$.
+\end{definition}
+
+\noindent Lemmas~\ref{lem:kappa-filtration}, \ref{lem:elimination},
+\ref{lem:MC-solvability} and Theorem~\ref{thm:obs-is-bd} below
+assume an observer-induced connection. Bundles with intrinsic
+topological curvature unrelated to $\rmin$ (e.g., pulled back from
+a nontrivial classifying map) are outside the scope of
+Thm.~\ref{thm:obs-is-bd} as stated; in such cases the Chern--Weil
+obstruction persists even at $\rmin = 0$ and (iv) becomes
+sufficient but not necessary.
+
+\begin{lemma}[Curvature filtration order]
+\label{lem:kappa-filtration}
+Let $(\EE, \hO, \nablaO)$ be an observer-induced symbolic bundle
+(Def.~\ref{def:obs-induced}) with kernel scale $\rmin$ and
+$\kappaO = d\AO + \AO \wedge \AO$. Under the $\OmegaO$-filtration
+of Def.~\ref{def:filtration}:
+\begin{enumerate}[label=(\alph*),leftmargin=*,itemsep=2pt]
+\item $\kappaO \in F^0 C^{0, 2}$: the curvature norm is bounded
+uniformly in $\lambda$.
+\item $\kappaO \in \bigcap_{k \in \mathbb{Z}} F^k C^{0, 2}$ if and
+only if $\kappaO = 0$ identically.
+\item Under the observer-induced hypothesis, $\kappaO = 0$
+identically if and only if $\rmin = 0$.
+\end{enumerate}
+\end{lemma}
+
+\begin{proof}
+(a) $\|\kappaO\|_{\hO} \leq \|d\AO\|_{\hO}
++ \|\AO\|^2_{\gO \otimes \hO, \infty}$. Both terms are bounded
+uniformly in $\lambda$: the second by $\Obs$-boundedness of $\AO$
+(\texttt{fig2\_companion\_fftc.tex}, Def.~1), the first by
+smoothness of $\AO$ on the open patch
+$|\Kt| \subset (M, g)$. Hence $\|\kappaO(\cdot, \lambda)\|_{\hO}
+= O(1) = O(\OmegaO(\lambda)^0)$.
+
+(b) ($\Leftarrow$) The zero cochain lies in every $F^k$ trivially.
+($\Rightarrow$) If $\kappaO \in F^k$ for all $k$, then
+$\|\kappaO(\cdot, \lambda)\|_{\hO} = O(\OmegaO(\lambda)^k)$ for
+every $k > 0$; since $\OmegaO(\lambda) \to 0$ at $\lambda^*$, the
+norm decays faster than every polynomial order. By continuity of
+$\kappaO$ in $\lambda$ (inherited from smoothness of $\AO$),
+$\kappaO \equiv 0$ at $\lambda^*$; smoothness in $\lambda$ then
+propagates the identity in a neighborhood, and real-analyticity
+of the construction extends it globally.
+
+(c) ($\Leftarrow$) If $\rmin = 0$, $\AO \to 0$ by
+Def.~\ref{def:obs-induced}, so
+$\kappaO = d\AO + \AO \wedge \AO \to 0$ in the norm of~(a);
+the limit object is the zero 2-form on $|\Kt|$.
+($\Rightarrow$) If $\kappaO = 0$ and $\AO$ is observer-induced,
+then $\AO$ is flat for every $\rmin$ in its parameter range.
+For observer-induced $\AO$, flatness at all $\rmin$ forces
+$\AO \equiv 0$ (the kernel-induced non-commutation is nonzero
+for $\rmin > 0$ by the construction in
+\texttt{fig2\_companion\_fftc.tex}); which in turn forces
+$\rmin = 0$ via Def.~\ref{def:obs-induced}.
+\end{proof}
+
+\begin{lemma}[Elimination: no strict-complex MC solvability strategy survives under $\rmin > 0$]
+\label{lem:elimination}
+Suppose $\rmin > 0$, $\AO$ is observer-induced
+(Def.~\ref{def:obs-induced}), and the good cover
+$\mathcal{U} = \{U_\beta\}$ has chart radius commensurable with
+the observer kernel scale ($\mathrm{diam}_g(U_\beta) \asymp \rmin$).
+Consider candidate Maurer--Cartan forms
+$\alpha = \alpha_{\mathrm{C}} + \alpha_{\mathrm{R}}
+\in C^{1,0} \oplus C^{0,1}$ solving
+$D\alpha + \tfrac{1}{2}[\alpha, \alpha] = \kappaO$
+in the \emph{strict} bicomplex $(C^{\bullet, \bullet}, D)$. The
+two natural proof strategies --- local-first (R1) and
+global-first (R2) --- both fail at the Chern--Weil class
+$[\kappaO]$:
+\begin{enumerate}[label=(R\arabic*),leftmargin=*,itemsep=2pt]
+\item \textbf{Local-first (de Rham-first).} Construct local
+covariant primitives
+$\tilde\alpha_{\mathrm{R}}|_{U_\beta}$ on each chart, then patch.
+Local primitives \emph{exist} on each contractible
+kernel-scale chart (by covariant integration), but they fail to
+glue: their \v{C}ech descent defect
+$\beta := \delta \tilde\alpha_{\mathrm{R}} \in C^{1,1}$ represents,
+under the \v{C}ech--de Rham isomorphism, the class
+$[\kappaO] \in H^2_{dR}(|\Kt|;\, \End(\EE))$, which is nonzero
+under the hypotheses. No global
+$\alpha_{\mathrm{C}} \in C^{1,0}$ satisfies $\delta \alpha_{\mathrm{C}}
+= -\beta$.
+\item \textbf{Global-first (\v{C}ech-first).} Trivialize the
+bundle globally via a \v{C}ech cocycle (gauge transformation
+across charts) before integrating. Fails at the initial step:
+the Chern--Weil class $[\kappaO] \neq 0$ is exactly the obstruction
+to global flat trivialization. No global
+$\alpha_{\mathrm{C}}$ reduces the connection to a flat
+representative.
+\end{enumerate}
+R1 and R2 are \emph{two presentations of the same underlying
+class obstruction} $[\kappaO] \neq 0$, linked by \v{C}ech--de Rham;
+they are not logically independent. The content of the lemma is
+that \emph{every proof strategy in the strict bicomplex encounters
+this class at some step} --- local-first at gluing, global-first
+at trivialization. Neither ordering yields a strict-complex
+solution; the coupled $\OmegaO$-filtered framework is the natural
+survivor.
+\end{lemma}
+
+\begin{proof}
+\textbf{(R1) failure --- local-first fails at gluing.}
+On each contractible kernel-scale chart $U_\beta$, the ambient
+smoothness of $\AO$ and $\kappaO$ gives a local
+$\tilde\alpha_{\mathrm{R}}|_{U_\beta} \in \Omega^1(U_\beta;\, \End(\EE))$
+solving $\DO \tilde\alpha_{\mathrm{R}} = \kappaO|_{U_\beta}$ via
+covariant integration along radial paths from a basepoint
+(explicit in coordinates: the radial-gauge primitive). Passing
+to the cover $\mathcal{U}$, the collection
+$\{\tilde\alpha_{\mathrm{R}}|_{U_\beta}\}_\beta$ has pairwise
+differences on overlaps giving a \v{C}ech 1-cocycle
+$\beta := \delta \tilde\alpha_{\mathrm{R}} \in C^{1,1}$. Under
+the \v{C}ech--de Rham isomorphism
+(cf.\ Bott--Tu, Ch.~8; Kobayashi--Nomizu, Ch.~III.5), the class
+of $\beta$ in $\check{H}^1(\mathcal{U};\, \Omega^1(\End(\EE)))$
+corresponds to $[\kappaO] \in H^2_{dR}(|\Kt|;\, \End(\EE))$.
+Nonzero class (established below) means $\beta$ is not a
+\v{C}ech coboundary, so no $\alpha_{\mathrm{C}}$ absorbs it.
+
+\textbf{(R2) failure --- global-first fails at trivialization.}
+Global trivialization of $\nablaO$ to a flat connection via a
+\v{C}ech cocycle requires $[\kappaO] = 0$ in
+$H^2_{dR}(|\Kt|;\, \End(\EE))$ by the standard Chern--Weil
+obstruction. Under nonzero class, no such trivialization exists.
+
+\textbf{$[\kappaO] \neq 0$ under observer-induced $\rmin > 0$.}
+Contrapositive of Lemma~\ref{lem:kappa-filtration}(c): if
+$[\kappaO] = 0$, Chern--Weil supplies a global flat gauge, forcing
+$\AO \equiv 0$ (in some gauge), which by the observer-induced
+hypothesis (Def.~\ref{def:obs-induced}) forces $\rmin = 0$.
+Contrary to assumption.
+
+\textbf{Relation between the two failures.} R1 and R2 encounter
+the class $[\kappaO]$ at different proof steps --- R1 after
+local primitives are constructed, R2 before any construction is
+attempted --- but the class itself is a single Čech--de Rham
+invariant. No proof strategy in the strict bicomplex avoids it,
+which is the elimination content.
+\end{proof}
+
+\begin{remark}[Proof by elimination and finite capture]
+\label{rem:elim-structural}
+Lemma~\ref{lem:elimination} has the structural shape of
+dual-horizon arguments in observer-bounded epistemology
+(cf.\ \texttt{main.tex}, \S on dual horizons): two
+single-direction proof strategies meet the same obstruction at
+distinct steps, leaving the coupled (filtered) framework as the
+only surviving solvability path. The two failure points --- R1
+\emph{local differential}, R2 \emph{global topological} --- are
+dual presentations of one underlying class obstruction, but they
+block two distinct proof flows. The creative content of the
+lemma is not that R1 and R2 are logically independent (they
+aren't; \v{C}ech--de Rham ties them), but that \emph{no
+single-direction proof strategy evades the obstruction}, and
+finite capture ($\rmin > 0$) is what puts the obstruction class
+in place to begin with: on the observer-induced kernel-scale
+cover, the Chern--Weil class is generically nonzero precisely
+because the observer resolves only at scale $\rmin$. We record
+this as a structural pattern: \emph{observer finite capture
+creates the cohomology that the coupled framework is forced to
+carry}.
+\end{remark}
+
+\begin{lemma}[Observer-bounded Maurer--Cartan solvability]
+\label{lem:MC-solvability}
+If $\rmin = 0$, the Maurer--Cartan equation
+$D\alpha + \tfrac{1}{2}[\alpha, \alpha] - \kappaO = 0$ admits a
+global solution
+$\alpha \in \Gamma(C^{1, 0} \oplus C^{0, 1})$.
+\end{lemma}
+
+\begin{proof}
+By Lemma~\ref{lem:kappa-filtration}(c), $\rmin = 0$ gives
+$\kappaO = 0$ identically. The equation reduces to
+$D\alpha + \tfrac{1}{2}[\alpha, \alpha] = 0$, solved trivially by
+$\alpha = 0$. (Equivalently, the observer-relative bundle at
+$\rmin = 0$ is flat, and any flat connection is gauge-equivalent
+to the trivial one on a simply connected base.)
+\end{proof}
+
+\subsection*{Proof of Theorem~\ref{thm:obs-is-bd}}
+
+\begin{proof}
+We establish the cycle
+(iv) $\Rightarrow$ (iii) $\Rightarrow$ (ii) $\Rightarrow$ (i)
+$\Rightarrow$ (iv).
+
+\textbf{(iv) $\Rightarrow$ (iii).}
+Assume $\rmin = 0$. By Lemma~\ref{lem:kappa-filtration}(c),
+$\kappaO = 0$, and by the observer-induced hypothesis $\AO = 0$
+as well (Def.~\ref{def:obs-induced}). The flat trivial
+observer-relative connection makes every cochain
+$\omega \in C^{p,q}$ $\lambda$-independent at leading order
+(no $\OmegaO$-coupling arises), so
+$\|\omega(\cdot, \lambda)\|_{\hO} = O(\OmegaO(\lambda)^k)$ for
+every $k \in \mathbb{Z}$. Hence $F^k C^{p, q} = C^{p, q}$ for
+all $k$; in particular, $\kappaO \in \bigcap_k F^k$.
+
+\textbf{(iii) $\Rightarrow$ (ii).}
+Assume $\kappaO \in \bigcap_k F^k C^{0, 2}$. By
+Lemma~\ref{lem:kappa-filtration}(b), $\kappaO = 0$ identically.
+A vanishing curvature 2-form has trivial de Rham class:
+$[\kappaO] = 0$ in $H^2_{dR}(|\Kt|;\, \End(\EE))$.
+
+\textbf{(ii) $\Rightarrow$ (i).}
+Assume $[\kappaO] = 0$. By the standard Chern--Weil construction
+(cf.\ Kobayashi--Nomizu, Bott--Tu; applied here to the
+observer-relative bundle as in \texttt{fig2\_companion\_fftc.tex}),
+trivial curvature class implies the existence of a connection
+1-form shift $\alpha$ whose action $\nablaO \to \nablaO + \alpha$
+produces a flat connection. This is equivalent to solving
+$\DO \alpha + \tfrac{1}{2}[\alpha, \alpha] = \kappaO$ locally.
+Globalization of $\alpha$ across the good cover $\mathcal{U}$
+uses the vanishing of the \v{C}ech obstruction (also guaranteed by
+$[\kappaO] = 0$) together with a partition of unity, yielding
+$\alpha \in \Gamma(C^{1,0} \oplus C^{0,1})$ satisfying
+$D\alpha + \tfrac{1}{2}[\alpha, \alpha] - \kappaO = 0$ in the
+strict bicomplex.
+
+\textbf{(i) $\Rightarrow$ (iv).}
+By contrapositive: assume $\rmin > 0$, and show (i) fails. By
+Lemma~\ref{lem:elimination}, the strict bicomplex admits no
+global MC solution when $\rmin > 0$: the de Rham-first route R1
+fails at local covariant integration, the \v{C}ech-first route
+R2 fails at global topological descent, and no combined decoupling
+in the strict complex evades the class obstruction
+$[\kappaO] \neq 0$ that both present. Any MC solvability content
+that survives lives in the $\OmegaO$-filtered (coupled)
+framework, absorbing $\kappaO$ at nontrivial filtration order ---
+the observer-bounded cohomology content of Thm.~\ref{thm:ttu},
+not a strict global section in
+$\Gamma(C^{1,0} \oplus C^{0,1})$. Hence (i) fails, and the
+contrapositive gives (i) $\Rightarrow$ $\rmin = 0 =$~(iv).
+\end{proof}
+
+\begin{remark}[Why the cycle goes through elimination]
+\label{rem:why-elim}
+The implication (i) $\Rightarrow$ (iv) can formally be derived
+through (ii) and (iii) without invoking
+Lemma~\ref{lem:elimination}. We have routed through the
+elimination lemma because it gives the \emph{direct} obstruction:
+strict MC solvability fails under $\rmin > 0$ not because of a
+topological accident, but because neither single-direction route
+(de Rham-first, \v{C}ech-first) can absorb $\kappaO$. The coupling
+between observer resolution and coupled cohomology is therefore
+not a byproduct of the Chern--Weil isomorphism --- it is a
+structural consequence of finite capture.
+\end{remark}
+
+\begin{remark}[Thm.~\ref{thm:obs-is-bd} as a screening statistic]
+\label{rem:screening}
+Thm.~\ref{thm:obs-is-bd} is formulated as a
+\emph{screening statistic}, matching the falsifiability posture
+of the companion ICML paper~\cite{tiffany2026cacophony} and
+§\ref{sec:falsifiability} below. Rather than a blanket
+``obstruction = observer bound'' across all symbolic bundles,
+it discriminates two regimes:
+\begin{enumerate}[label=(\alph*),leftmargin=*,itemsep=2pt]
+\item \emph{Observer-induced} (Def.~\ref{def:obs-induced}): the
+Chern--Weil class exists \emph{because of} finite capture. Here
+obstruction $\equiv$ observer bound, and $\rmin \to 0$ dissolves
+both.
+\item \emph{Intrinsic-topological}: the class exists
+independently of $\rmin$ (e.g., pulled back from a nontrivial
+classifying map). Here the observer bound is orthogonal to the
+obstruction; $\rmin \to 0$ leaves $[\kappaO] \neq 0$.
+\end{enumerate}
+
+\smallskip\noindent\emph{Operational diagnostic.}
+Given a system with measured $[\kappaO] \neq 0$, vary $\rmin$
+monotonically. If $[\kappaO] \to 0$ as $\rmin \to 0$, the bundle
+is observer-induced and the theorem applies. If $[\kappaO]$
+stays bounded away from zero as $\rmin \to 0$, the bundle carries
+intrinsic topology and the observer bound is not the carrier of
+the class. The theorem's content is this discrimination; the
+screening is intentional specificity, not a hedge. The
+cacophony and FRW instances of \S\ref{sec:cacophony} and
+\S\ref{sec:frw} are observer-induced by construction: both have
+topologically trivial bases, so $[\kappaO] = 0$ away from the
+critical point, and the obstruction that Thm.~\ref{thm:ttu}
+packages into $\HO^{\bullet, \bullet}$ is precisely the
+finite-capture class.
+\end{remark}
+
+\section{Falsification criteria}
+\label{sec:falsifiability}
+
+The Universal Exponent Theorem (Thm.~\ref{thm:universal}) and
+its two instances are falsifiable:
+
+\textbf{F1} (cacophony). If, in the cacophony
+bilinear family, some rank-one deformation produces a critical
+exponent $\neq -1/2$ (i.e., vanishing order $p \neq 1$), the
+cacophony instance is misclassified. Testable via variant
+constraint geometries.
+
+\textbf{F2} (cosmology). If a perfect-fluid FRW cosmology with
+known $w$ yields a measured access-cost exponent differing from
+$-2/(3(1+w))$ (Cor.~\ref{cor:genw}), the FRW instance is
+misclassified or the functor is not $\OmegaO$. Testable against
+Planck Euclid BAO joint constraints.
+
+\textbf{F3} (universality). If there is any observer-bounded
+system whose capacity vanishes to order $p$ and whose
+access-cost exponent is not $-p/2$, Thm.~\ref{thm:universal} is
+wrong.
+
+\textbf{F4} (cohomological unification). If strict cohomological
+lift is constructed for the cacophony--FRW pair without
+requiring $\rmin = 0$, Thm.~\ref{thm:obs-is-bd} is wrong.
+
+\section{Revisions to main-text language}
+\label{sec:revisions}
+
+The main-text changes supported by this companion are two:
+
+\textbf{Caption (Fig.~3).} The earlier caption phrased radiation-era
+$1/2$ as a match and matter-era $2/3$ as regime-distinct. Under
+Thm.~\ref{thm:universal} both are instances of one theorem with
+different $p$; the revised caption reports the prediction
+$-2/(3(1+w))$ and attributes the $1/2$ match to $w = 1/3$.
+
+\textbf{H$^1$ claim (Empirical Concurrence, \texttt{main.tex} line 1098).}
+The earlier sentence suggested $H^1$ \emph{may be} a shared
+invariant. Under Thm.~\ref{thm:ttu} the shared invariant lives
+in observer-bounded cohomology (Def.~\ref{def:ocoh}), and under
+Thm.~\ref{thm:obs-is-bd} the failure of a strict $H^1$ lift is
+equivalent to the observer bound. The revised sentence states
+this precisely, citing Thm.~\ref{thm:universal} and
+Def.~\ref{def:ocoh} of this companion.
+
+\section*{Bibliography (abbreviated)}
+\label{sec:bib}
+
+\begin{thebibliography}{9}
+
+\bibitem{tiffany2026cacophony}
+Anonymous.
+\emph{The Cost of Cacophony: Geometric Limits on Multi-Constraint
+Alignment}. Proc. ICML, 2026.
+
+\bibitem{planck2020parameters}
+Planck Collaboration.
+\emph{Planck 2018 results. VI. Cosmological parameters}. A\&A 641
+(2020) A6.
+
+\bibitem{tiffany2026hypsurf}
+Anonymous.
+\emph{The Hypothesis Surface: An Operational Epistemology for
+Autonomous Research}. AGI-26, 2026 (companion main manuscript).
+
+\bibitem{fig2comp}
+Anonymous.
+\emph{Companion Manuscript, Figure~2: FFTC and Observer-Relative
+Stokes}. File \texttt{fig2\_companion\_fftc.tex}.
+
+\end{thebibliography}
+
+\end{document}

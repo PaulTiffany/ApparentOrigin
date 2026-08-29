@@ -1,0 +1,56 @@
+name: Planck Operator-Prism Contract
+
+on:
+  workflow_dispatch:
+    inputs:
+      nside_out:
+        description: "HEALPix nside for low-ell extraction"
+        required: true
+        default: "64"
+      lmax:
+        description: "Maximum ell for coefficient extraction"
+        required: true
+        default: "30"
+
+jobs:
+  operator-prism-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore Planck FITS cache
+        id: planck-cache
+        uses: actions/cache@v4
+        with:
+          path: data/raw/planck_operator_residue
+          key: planck-pr3-component-maps-common-mask-v1
+
+      - name: Download Planck PR3 inputs
+        run: bash cloud_run/github_actions/download_planck_pr3.sh
+
+      - name: Install Python dependencies
+        run: python -m pip install -r cloud_run/planck_operator_prism/requirements.txt
+
+      - name: Run operator-prism contract
+        env:
+          MAP_DIR: ${{ github.workspace }}/data/raw/planck_operator_residue/maps
+          MASK_PATH: ${{ github.workspace }}/data/raw/planck_operator_residue/masks/COM_Mask_CMB-common-Mask-Int_2048_R3.00.fits
+          NSIDE_OUT: ${{ inputs.nside_out }}
+          LMAX: ${{ inputs.lmax }}
+        run: bash cloud_run/github_actions/run_planck_operator_prism.sh
+
+      - name: Upload contract reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: planck-operator-prism-contract
+          path: |
+            reports/planck_operator_residue/operator_prism_contract/**
+          if-no-files-found: error

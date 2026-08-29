@@ -1,0 +1,59 @@
+name: Fermi 4FGL Catalog Axis Validation
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/fermi_4fgl_catalog_axes.yml"
+      - "cloud_run/fermi_demask_shift/**"
+      - "ci_inputs/fermi_demask_shift/fermi_4fgl_catalog/**"
+  push:
+    paths:
+      - ".github/workflows/fermi_4fgl_catalog_axes.yml"
+      - "cloud_run/fermi_demask_shift/**"
+
+jobs:
+  passive-catalog-axis-run:
+    name: Passive 4FGL catalog axis run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install passive catalog dependencies
+        run: python -m pip install -r cloud_run/fermi_demask_shift/requirements.txt
+
+      - name: Generate Fermi-derived catalog axes
+        run: |
+          python cloud_run/fermi_demask_shift/fermi_4fgl_catalog_axes.py \
+            --out-dir reports/fermi_demask_shift_recurrence/fermi_4fgl_catalog_axes
+
+      - name: Run SharedShift on generated axes
+        run: |
+          AXES_PATH="$GITHUB_WORKSPACE/reports/fermi_demask_shift_recurrence/fermi_4fgl_catalog_axes/axes.csv"
+          python cloud_run/fermi_demask_shift/fermi_shared_shift_runner.py \
+            --mode axes_csv_url \
+            --axes-csv-url "file://${AXES_PATH}" \
+            --transitions "M0:M1,M1:M2,M2:M3,M0:M2,M0:M4" \
+            --out-dir reports/fermi_demask_shift_recurrence/fermi_4fgl_catalog_shared_shift
+
+      - name: Print classification and metrics
+        run: |
+          cat reports/fermi_demask_shift_recurrence/fermi_4fgl_catalog_axes/RUN_CLASSIFICATION.md
+          cat reports/fermi_demask_shift_recurrence/fermi_4fgl_catalog_shared_shift/shared_shift_metrics.csv
+
+      - name: Upload Fermi 4FGL catalog axis artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: fermi-4fgl-catalog-axis-validation
+          path: |
+            reports/fermi_demask_shift_recurrence/fermi_4fgl_catalog_axes/**
+            reports/fermi_demask_shift_recurrence/fermi_4fgl_catalog_shared_shift/**
