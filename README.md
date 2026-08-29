@@ -103,6 +103,15 @@ Neither Phase 0 nor Phase 1A reproduces the Nature paper's Cloudy/COLT inference
 
 The next defensible phase is therefore to reproduce an explicit dense-envelope forward model from declared assumptions and compare its reconstruction against the local virial estimator without treating either as an omniscient reference.
 
+## Prior companion mathematics
+
+The Figure 2 proof companion for **The Hypothesis Surface: An Operational Epistemology for Autonomous Research** predates this repository and remains available in the archived AGI-26 companion package:
+
+- [Fuzzy Fundamental Theorem of Calculus and Observer-Relative Stokes (PDF)](https://github.com/PaulTiffany/hypothesis-surface-agi26/blob/master/supplementary/fig2_companion_fftc.pdf)
+- [LaTeX source](https://github.com/PaulTiffany/hypothesis-surface-agi26/blob/master/supplementary/fig2_companion_fftc.tex)
+
+ApparentOrigin links to those archived artifacts rather than republishing duplicate copies.
+
 ## Repository layout
 
 - `src/` — bounded acquisition and analysis code.
