@@ -67,6 +67,22 @@ Safe now:
 6. storyboard for a visual explainer,
 7. internal technical episode on apparatus-bound `K`.
 
+## Notebook Links
+
+The following owner-supplied NotebookLM links are preserved as external
+pedagogy artifacts:
+
+1. https://notebook.google.com/notebook/78a1974b-ef53-4ae8-a82e-0acf77866335
+2. https://notebook.google.com/notebook/f0a67aad-3fc3-4a11-918b-c24fd49f03b5
+3. https://notebook.google.com/notebook/f232b412-c81a-4edb-95e9-331848856da0
+4. https://notebook.google.com/notebook/457628bc-617e-4042-8b62-55a338c932cf
+
+These links have not yet been independently inspected from a public-viewer
+session. Their order is not asserted to correspond to Episodes 1-4, and their
+presence here does not certify their sharing state, contents, source rights, or
+scientific claims. They are AI-generated pedagogy and compression, not
+empirical evidence. See `RIGHTS_AND_PUBLICATION.md` before republication.
+
 Not safe yet:
 
 1. "AOC proves the Big Bang is false,"
