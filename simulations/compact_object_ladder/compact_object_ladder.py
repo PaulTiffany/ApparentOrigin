@@ -75,7 +75,11 @@ def rows() -> list[dict[str, object]]:
 def write_csv(path: Path) -> None:
     data = rows()
     with path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(data[0].keys()))
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=list(data[0].keys()),
+            lineterminator="\n",
+        )
         writer.writeheader()
         writer.writerows(data)
 
