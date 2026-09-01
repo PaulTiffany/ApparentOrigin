@@ -1,1 +1,0 @@
-This branch intentionally adds the constitutive cosmology as a separate hypothesis-layer document before modifying the canonical proof spine. Review the definitions and falsification clauses first; if accepted, the next patch should wire the settled definitions into the canonical proof and remove its open FRW access-chart question.
