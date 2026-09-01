@@ -52,7 +52,7 @@ and a local imagined/reconstructed section
 
 `X` is retained as an operational process space because the existing Apparent-Origin machinery uses it. It is not promoted here to a final observer-independent ontology.
 
-On overlaps `U_i cap U_j`, observers can attempt to translate their local sections through transition maps
+On overlaps `U_i \cap U_j`, observers can attempt to translate their local sections through transition maps
 
 ```tex
 g_{ij} : \mathcal F(U_i \cap U_j) \to \mathcal F(U_i \cap U_j).
@@ -86,19 +86,19 @@ be the set of distinctions presently observable by `O_i` under its resolution, m
 
 An artifact is a locally stabilized section that survives for a bounded time and a restricted observer class.
 
-For a proper observer subset `J subsetneq mathfrak O`, write
+For a proper observer subset `J \subsetneq \mathfrak O`, write
 
 ```tex
 A_{J,\tau}
 ```
 
-for a distinction that remains coherent for observers in `J` over interval `tau`, but is not required to survive every observer transformation.
+for a distinction that remains coherent for observers in `J` over interval `\tau`, but is not required to survive every observer transformation.
 
 Artifacts are real within their declared observer support. They are not thereby matter.
 
 ### Material
 
-Material is observer-surviving manifold structure relative to a declared observer class `C subseteq mathfrak O`:
+Material is observer-surviving manifold structure relative to a declared observer class `C \subseteq \mathfrak O`:
 
 ```tex
 \mathrm{Mat}(C)
@@ -143,7 +143,7 @@ These are observer-indexed until a universal statement is actually warranted.
 
 Near a realized state `R_t`, linearize the local space of possible changes by a tangent space `T_{R_t}`.
 
-For a candidate direction `v in T_{R_t}`, define its observer support
+For a candidate direction `v \in T_{R_t}`, define its observer support
 
 ```tex
 \sigma(v)
@@ -266,7 +266,7 @@ q_O:X\to R_O
 
 with finite resolution floor `s_O`, memory budget `M_O`, and integration bandwidth `B_O`.
 
-When an unresolved region `U subset X` collapses under `q_O` into one equivalence class, and that class is extremal in the observer's reconstruction order, it appears as a floor, boundary, residue, or origin.
+When an unresolved region `U \subset X` collapses under `q_O` into one equivalence class, and that class is extremal in the observer's reconstruction order, it appears as a floor, boundary, residue, or origin.
 
 The constitutive reading adds:
 
@@ -286,7 +286,7 @@ as an observer-access capacity.
 
 This document resolves the open scope question conservatively:
 
-> `Omega_O=a(t)^2` is the first FRW access chart, not the unique canonical access functor for Apparent-Origin Cosmology.
+> `\Omega_O=a(t)^2` is the first FRW access chart, not the unique canonical access functor for Apparent-Origin Cosmology.
 
 Different empirical observer classes require derived access maps appropriate to their observables, including CMB reconstruction, luminosity distance, lensing, spectroscopy, survey completeness, morphology, and transient detection.
 
@@ -296,7 +296,7 @@ For a declared observer/operator `O`, define a coherent-reconstruction score
 C_O(\tau)\in[0,1]
 ```
 
-over reconstruction depth `tau`, including declared requirements for identifiability, atlas compatibility, and control survival.
+over reconstruction depth `\tau`, including declared requirements for identifiability, atlas compatibility, and control survival.
 
 Define the apparent reconstruction frontier
 
@@ -308,7 +308,7 @@ Define the apparent reconstruction frontier
 
 with orientation chosen so that deeper reconstruction approaches the early boundary.
 
-The number itself is contract-dependent. The scientific object is how `tau_O^*` transforms when the observer class is changed by a declared operation.
+The number itself is contract-dependent. The scientific object is how `\tau_O^*` transforms when the observer class is changed by a declared operation.
 
 ## 8. Core cosmological prediction shape
 
@@ -460,7 +460,7 @@ If a claimed boundary residue does not compose across valid observer charts, tre
 
 ### F3. Strong-constitutive rejection
 
-If a declared strong-constitutive coupling `gamma` is tested and is consistent with zero under adequate controls, reject the unmediated constitutive term.
+If a declared strong-constitutive coupling `\gamma` is tested and is consistent with zero under adequate controls, reject the unmediated constitutive term.
 
 ### F4. Interpretive-only classification
 
