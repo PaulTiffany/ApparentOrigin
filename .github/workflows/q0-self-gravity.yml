@@ -1,0 +1,49 @@
+name: Phase Q0 self-gravity conditional gate
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "simulations/compact_object_ladder/**"
+      - ".github/workflows/q0-self-gravity.yml"
+  push:
+    branches: [main]
+    paths:
+      - "simulations/compact_object_ladder/**"
+      - ".github/workflows/q0-self-gravity.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  q0:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify Q0 software invariants
+        working-directory: simulations/compact_object_ladder
+        run: python -m unittest -v test_q0_self_gravity.py test_compact_object_ladder.py
+      - name: Execute declared conditional Q0 contract
+        working-directory: simulations/compact_object_ladder
+        run: |
+          python q0_self_gravity.py --contract q0_contract.json --out q0-results.json
+          sha256sum q0_contract.json > q0-contract.sha256
+          sha256sum q0-results.json > q0-results.sha256
+      - name: Scientific boundary on summary
+        run: |
+          echo '## Q0: conditional textbook calculation only' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Allowed: formal bounds under explicitly declared assumptions.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Forbidden: physical reachability, engineered horizons or quantum foam.' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: q0-conditional-physics-receipt
+          path: |
+            simulations/compact_object_ladder/q0_contract.json
+            simulations/compact_object_ladder/q0-results.json
+            simulations/compact_object_ladder/q0-contract.sha256
+            simulations/compact_object_ladder/q0-results.sha256
+          retention-days: 30
