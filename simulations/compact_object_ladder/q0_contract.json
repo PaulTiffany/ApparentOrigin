@@ -1,0 +1,31 @@
+{
+  "status": "illustrative_conditional_sweep",
+  "cases": [
+    {
+      "name": "Sun calibration, no modeled growth",
+      "initial_mass_kg": 1.98847e30,
+      "initial_radius_m": 6.957e8,
+      "dissipated_power_w": 3.828e26,
+      "mass_growth_rate_kg_s": 0,
+      "duration_s": 0,
+      "radius_mass_exponent": 0.3333333333333333,
+      "radiation_emissivity": 1,
+      "max_surface_temperature_k": 6000,
+      "assumed_entropy_bits": null,
+      "excitation_energy_above_ground_j": null
+    },
+    {
+      "name": "Hypothetical fixed-radius accumulation (not a feasible process claim)",
+      "initial_mass_kg": 1e26,
+      "initial_radius_m": 1,
+      "dissipated_power_w": 1e15,
+      "mass_growth_rate_kg_s": 1e27,
+      "duration_s": 10,
+      "radius_mass_exponent": 0,
+      "radiation_emissivity": 1,
+      "max_surface_temperature_k": 1000,
+      "assumed_entropy_bits": null,
+      "excitation_energy_above_ground_j": null
+    }
+  ]
+}
