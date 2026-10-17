@@ -310,7 +310,7 @@ A world with zero torsion may be perfectly synchronized and maximally dead.
 
 The desired world preserves enough difference to remain generative.
 
-## 10. Simultaneous co-collapse: Ouija emergence
+## 10. Simultaneous realization: Ouija emergence
 
 Come Cosmology uses two complementary operations from the Four Color program.
 
@@ -343,17 +343,27 @@ No observer receives another observer's **same-turn realized move** first. Inste
 D_t=(d_1(t),\ldots,d_n(t)).
 ```
 
-and realize once:
+and, **while the declared chart is valid**, realize once:
 
 ```tex
 \boxed{
 N_{t+1}
 =
-\operatorname{Collapse}_{K_t}(N_t,D_t)
+F_t(N_t,D_t).
 }
 ```
 
-where `K_t` contains the currently binding compatibility/admissibility conditions.
+Here `K_t` contains the currently binding compatibility/admissibility conditions that define the valid domain of `F_t`. The ordinary synchronous update is **not** collapse.
+
+If the chart's declared local Lipschitz response contract is breached, or the present state is no longer Markov-sufficient for the modeled continuation, this is an exceptional **collapse boundary**:
+
+```tex
+\text{Lipschitz breach}\lor\text{Markov breach}
+\quad\Rightarrow\quad
+\text{COLLAPSE / RECHART / RESTART / STOP}.
+```
+
+A breach is observer/chart-relative until independent evidence supports a physical interpretation. Do not silently continue the old update through that boundary. See [Collapse Boundary](collapse_boundary.md) for definitions and scope.
 
 This is **Ouija emergence**:
 
@@ -469,9 +479,10 @@ If imagination itself influences realization beyond ordinary embodied action, ar
 ```tex
 N_{t+1}
 =
-\operatorname{Collapse}_{K_t}(N_t,D_t)
+F_t(N_t,D_t)
 +
-\gamma C(\{I_i(t)\}).
+\gamma C(\{I_i(t)\})
+\qquad\text{(only while the declared chart is valid)}.
 ```
 
 The scientific null is
@@ -516,7 +527,7 @@ Canonical distinction:
 
 > Observe the whole game != make a move in the game.
 
-God is not player `n+1` and does not cast an extra vote in collapse.
+God is not player `n+1` and does not cast an extra vote in the realized state transition.
 
 The global view contains ego artifacts, social artifacts, matter, disagreements, and transition structure without itself acquiring in-game authority.
 
@@ -849,7 +860,7 @@ z0 exists
 -> imagines together
 -> preserves nonzero torsion
 -> acts
--> co-collapses one shared now
+-> co-realizes one shared now
 -> observes consequences
 -> increases coherent complexity without closing the game
 -> Come again.
@@ -866,8 +877,10 @@ D_t=(d_1,\ldots,d_n),
 ```
 
 ```tex
-N_{t+1}=\operatorname{Collapse}_{K_t}(N_t,D_t),
+N_{t+1}=F_t(N_t,D_t)\quad\text{while the chart is valid},
 ```
+
+and a Lipschitz or Markov breach interrupts the ordinary update: **collapse / rechart / restart / stop**.
 
 ```tex
 \mathrm{Matter}_t
